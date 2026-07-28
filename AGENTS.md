@@ -8,19 +8,19 @@ You should think like a senior mobile developer, but explain and implement like 
 
 ## Project Overview
 
-We are building a Duolingo-inspired AI language learning mobile app using Expo.
+We are building a service-based marketplace mobile app ("Uber for artisans and skilled professionals") called **skilled4U-app** using Expo.
 
-The app teaches users languages through interactive lessons that may include:
+The app connects users with local skilled professionals (plumbers, electricians, carpenters, cleaners, etc.) through interactive features that may include:
 
-- video-based AI teacher lessons
-- audio lessons
-- chat-based AI tutor lessons
-- vocabulary review
-- local XP and lesson completion
-- language selection
-- beautiful mobile-first UI inspired by playful learning apps
+- service category browsing and search
+- artisan profiles and portfolios
+- booking and scheduling systems
+- real-time location or maps integration
+- chat-based messaging between users and artisans
+- reviews and ratings
+- beautiful mobile-first UI inspired by modern service booking apps like Uber or TaskRabbit
 
-This is primarily a learning project. The goal is to teach developers how to build a modern AI-powered Expo app feature by feature.
+This is primarily a learning project. The goal is to teach developers how to build a modern, complex Expo marketplace app feature by feature.
 
 ---
 
@@ -67,7 +67,7 @@ If something is unclear or could be improved:
 
 Example:
 
-> "This could be implemented manually, but using `react-native-reanimated` would make animations smoother. Do you want me to add it?"
+> "This could be implemented manually, but using `react-native-maps` would make location tracking smoother. Do you want me to add it?"
 
 Do not install or use new libraries without user approval.
 
@@ -81,7 +81,8 @@ Use this structure unless there is a strong reason to change it:
 app/
   (auth)/
   (tabs)/
-  lesson/
+  booking/
+  profile/
 components/
 constants/
 data/
@@ -104,7 +105,7 @@ Create a component only when:
 
 - it is reused in multiple places
 - it makes a screen easier to read
-- it represents a clear UI concept like `LessonCard`, `XPBar`, `LanguageCard`, or `PrimaryButton`
+- it represents a clear UI concept like `ArtisanCard`, `BookingStatus`, `ServiceCategoryCard`, or `PrimaryButton`
 
 Do not create tiny one-off components too early.
 
@@ -154,7 +155,7 @@ After generating images:
 ```txt
 assets/images/
   onboarding-illustration.png
-  mascot-happy.png
+  plumber-avatar.png
 ```
 
 Use these assets properly in the UI.
@@ -254,7 +255,7 @@ And similar for above mentioned exception components. Otherwise, alaways stick t
 
 The app should feel:
 
-- playful
+- trustworthy
 - polished
 - friendly
 - mobile-first
@@ -265,7 +266,7 @@ Use:
 - rounded cards
 - soft shadows
 - clear spacing
-- progress indicators
+- progress/status indicators for bookings
 - friendly empty states
 - large touch targets
 - simple animations when useful
@@ -286,19 +287,19 @@ Before using any image asset:
 Example:
 
 ```ts
-import mascot from "@/assets/images/mascot.png";
-import mascotLogo from "@/assets/images/mascot-logo.png";
+import plumberIcon from "@/assets/images/plumber-icon.png";
+import logo from "@/assets/images/logo.png";
 
 export const images = {
-  mascot,
-  mascotLogo,
+  plumberIcon,
+  logo,
 };
 ```
 
 Use images like this,
 
 ```tsx
-<Image source={images.mascot} />
+<Image source={images.plumberIcon} />
 ```
 
 Do not require/import image assets directly inside screens or components unless there is a strong reason.
@@ -307,17 +308,17 @@ Do not require/import image assets directly inside screens or components unless 
 
 ## data/
 
-Use this for hardcoded lesson content.
+Use this for hardcoded marketplace content.
 
 Example:
 
 ```txt
 data/
-  languages.ts
-  lessons.ts
+  categories.ts
+  artisans.ts
 ```
 
-Lesson content should be typed.
+Marketplace content should be typed.
 
 ---
 
@@ -327,11 +328,9 @@ Use Zustand stores here.
 
 Use Zustand for:
 
-- selected language
-- completed lessons
-- XP
-- streak-like local values
-- current lesson state
+- selected service category
+- current booking details
+- user role (client vs artisan)
 - app settings
 
 Use AsyncStorage persistence where needed.
@@ -390,13 +389,13 @@ When the user asks to build a feature:
 
 ---
 
-## AI / Stream / Vision Agent Rules
+## AI / Stream / Services Rules
 
 Use backend/serverless for:
 
 - Stream tokens
-- AI calls
-- Vision Agent sessions
+- AI calls or third-party service logic
+- Payment processing
 
 Never expose secrets in the frontend.
 
@@ -410,9 +409,9 @@ Do not build custom auth.
 
 ---
 
-## Lesson Content Rules
+## Marketplace Content Rules
 
-Use hardcoded JSON/TS for lessons.
+Use hardcoded JSON/TS for artisans and categories initially.
 
 Do not introduce a database unless explicitly requested.
 
