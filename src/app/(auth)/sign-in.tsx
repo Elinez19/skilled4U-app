@@ -17,7 +17,7 @@ export default function SignInScreen() {
     // Simulate sign-in for now
     setTimeout(() => {
       setIsLoading(false);
-      // router.replace("/(tabs)"); // Navigate to tabs when ready
+      router.replace("/(auth)/profile-setup");
     }, 1500);
   };
 

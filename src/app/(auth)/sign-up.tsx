@@ -18,7 +18,8 @@ export default function SignUpScreen() {
     // Simulate sign-up for now
     setTimeout(() => {
       setIsLoading(false);
-      // Navigate to next screen
+      // Navigate to profile setup screen
+      router.replace("/(auth)/profile-setup");
     }, 1500);
   };
 
