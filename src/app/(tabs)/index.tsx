@@ -74,7 +74,9 @@ export default function TabsIndex() {
         category={selectedCategory}
         onClose={() => setIsModalVisible(false)}
         onGoPress={(services) => {
-          console.log(`Selected services for ${selectedCategory?.title}:`, services);
+          if (selectedCategory) {
+            router.push(`/service-providers?categoryId=${selectedCategory.id}`);
+          }
         }}
       />
     </SafeAreaView>
