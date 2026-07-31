@@ -1,20 +1,20 @@
-import React from "react";
-import { View, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import React from "react";
+import { ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { HomeHeader } from "../../components/home/HomeHeader";
+import { EliteProviders } from "../../components/home/EliteProviders";
 import { HomeBanner } from "../../components/home/HomeBanner";
-import { SearchAndWallet } from "../../components/home/SearchAndWallet";
-import { ServiceCategoryCard } from "../../components/home/ServiceCategoryCard";
-import { SectionHeader } from "../../components/home/SectionHeader";
+import { HomeHeader } from "../../components/home/HomeHeader";
+import { OurPartners } from "../../components/home/OurPartners";
 import { ProductDeals } from "../../components/home/ProductDeals";
+import { SearchAndWallet } from "../../components/home/SearchAndWallet";
+import { SectionHeader } from "../../components/home/SectionHeader";
+import { ServiceCategoryCard } from "../../components/home/ServiceCategoryCard";
+import { ServiceSelectionModal } from "../../components/home/ServiceSelectionModal";
 import { SpecialPromos } from "../../components/home/SpecialPromos";
 import { TrendingProducts } from "../../components/home/TrendingProducts";
-import { EliteProviders } from "../../components/home/EliteProviders";
-import { OurPartners } from "../../components/home/OurPartners";
-import { POPULAR_CATEGORIES, Category } from "../../data/categories";
-import { ServiceSelectionModal } from "../../components/home/ServiceSelectionModal";
+import { Category, POPULAR_CATEGORIES } from "../../data/categories";
 
 export default function TabsIndex() {
   const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);

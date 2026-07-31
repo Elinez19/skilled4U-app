@@ -1,5 +1,4 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, Text, TouchableOpacity } from "react-native";
 import { SPECIAL_PROMOS } from "../../data/homeSections";
 
 export function SpecialPromos() {

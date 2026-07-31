@@ -82,7 +82,7 @@ export default function ScheduleAppointmentScreen() {
               <TouchableOpacity
                 key={idx}
                 onPress={() => setSelectedTime(time)}
-                className={`px-4 py-2.5 rounded-full border ${isSelected ? 'border-[#00B7FF]' : 'border-slate-100'} bg-white shadow-sm`}
+                className={`px-4 py-2.5 rounded-full border ${isSelected ? 'border-primary' : 'border-slate-100'} bg-white shadow-sm`}
                 style={!isSelected ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 } : {}}
               >
                 <Text className={`text-[13px] ${isSelected ? 'text-[#5C71A2]' : 'text-[#0D253C]'}`}>{time}</Text>
@@ -97,7 +97,7 @@ export default function ScheduleAppointmentScreen() {
         <View className="flex-row justify-end mb-4">
           <TouchableOpacity 
             onPress={handleSet}
-            className="border border-[#00B7FF] rounded-xl px-8 py-2"
+            className="border border-primary rounded-xl px-8 py-2"
           >
             <Text className="text-[#00B7FF] font-medium text-[15px]">Set</Text>
           </TouchableOpacity>
@@ -114,7 +114,7 @@ export default function ScheduleAppointmentScreen() {
           </View>
         )}
 
-        <TouchableOpacity className={`w-full rounded-xl py-3.5 items-center ${isSet ? 'bg-[#00B7FF]' : 'bg-[#93D9FA]'}`}>
+        <TouchableOpacity className={`w-full rounded-xl py-3.5 items-center ${isSet ? 'bg-primary' : 'bg-[#93D9FA]'}`}>
           <Text className="text-white font-bold text-[15px]">Submit Request</Text>
         </TouchableOpacity>
       </View>

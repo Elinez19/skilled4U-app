@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BookServiceModal } from '../components/providers/BookServiceModal';
+import { images } from '../constants/images';
 import { ARTISANS } from '../data/artisans';
 import { ALL_CATEGORIES } from '../data/categories';
-import { images } from '../constants/images';
-import { BookServiceModal } from '../components/providers/BookServiceModal';
 
 export default function ServiceProvidersScreen() {
   const { categoryId } = useLocalSearchParams();
@@ -57,7 +57,7 @@ export default function ServiceProvidersScreen() {
           {displayProviders.map((provider) => (
             <View 
               key={provider.id}
-              className="bg-white rounded-[20px] p-5 mb-4 border border-[#00B7FF]"
+              className="bg-white rounded-[20px] p-5 mb-4 border border-primary"
             >
               <Text className="text-right text-[11px] text-slate-500 mb-3 font-medium">Closest to you</Text>
               
@@ -65,7 +65,7 @@ export default function ServiceProvidersScreen() {
                 <View className="relative mr-4">
                   <Image 
                     source={{ uri: provider.profileImage }} 
-                    className="w-[60px] h-[60px] rounded-full bg-slate-200"
+                    className="w-15 h-15 rounded-full bg-slate-200"
                   />
                   {provider.isOnline && (
                     <View className="absolute top-0 right-0 w-4 h-4 rounded-full bg-[#10B981] border-[2.5px] border-white" />
@@ -89,7 +89,7 @@ export default function ServiceProvidersScreen() {
               </View>
 
               <View className="flex-row justify-between">
-                <TouchableOpacity className="flex-1 bg-[#00B7FF] rounded-full py-3 items-center mr-2">
+                <TouchableOpacity className="flex-1 bg-primary rounded-full py-3 items-center mr-2">
                   <Text className="text-white font-medium text-[14px]">View Profile</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 

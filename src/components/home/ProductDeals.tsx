@@ -1,5 +1,4 @@
-import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { PRODUCT_DEALS } from "../../data/homeSections";
 
 export function ProductDeals() {

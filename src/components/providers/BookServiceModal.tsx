@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Category } from '../../data/categories';
 
 interface BookServiceModalProps {
@@ -59,7 +59,7 @@ export function BookServiceModal({ isVisible, onClose, category }: BookServiceMo
                       className="flex-row items-center py-2.5"
                       onPress={() => toggleService(sub)}
                     >
-                      <View className={`w-5 h-5 rounded-[4px] border items-center justify-center mr-4 ${isSelected ? 'border-[#0D253C] bg-[#0D253C]' : 'border-slate-400 bg-white'}`}>
+                      <View className={`w-5 h-5 rounded-sm border items-center justify-center mr-4 ${isSelected ? 'border-[#0D253C] bg-[#0D253C]' : 'border-slate-400 bg-white'}`}>
                         {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
                       </View>
                       <Text className="text-[15px] text-[#0D253C]">{sub}</Text>
@@ -104,7 +104,7 @@ export function BookServiceModal({ isVisible, onClose, category }: BookServiceMo
               </View>
 
               {/* Actions */}
-              <TouchableOpacity className="w-full bg-[#00B7FF] rounded-xl py-3.5 items-center mb-3">
+              <TouchableOpacity className="w-full bg-primary rounded-xl py-3.5 items-center mb-3">
                 <Text className="text-white font-medium text-[15px]">Immediate Service Request</Text>
               </TouchableOpacity>
               

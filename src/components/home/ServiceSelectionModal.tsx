@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Modal from "react-native-modal";
 import { Category } from "../../data/categories";
 
 interface ServiceSelectionModalProps {

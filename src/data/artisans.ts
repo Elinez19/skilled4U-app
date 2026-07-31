@@ -44,5 +44,15 @@ export const ARTISANS: Artisan[] = [
     categoryId: "all_4", // Just some dummy mapping
     profileImage: "https://randomuser.me/api/portraits/men/62.jpg",
     isOnline: true,
-  }
+  },
+  {
+    id: "a5",
+    name: "Jason Cleaner",
+    rating: 3.5,
+    reviews: 50,
+    categoryId: "all_5", // Just some dummy mapping
+    profileImage: "https://randomuser.me/api/portraits/men/64.jpg",
+    isOnline: true,
+  },
+  
 ];
