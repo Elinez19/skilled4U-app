@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, TextInput, TextInputProps, TouchableOpacity, View } from "react-native";
 
 interface InputFieldProps extends TextInputProps {
-  label: string;
+  label?: string;
   error?: string;
 }
 
@@ -14,7 +14,7 @@ export function InputField({ label, error, secureTextEntry, className, ...props 
 
   return (
     <View className={`w-full mb-4 ${className || ""}`}>
-      <Text className="body-md font-medium text-neutral-700 mb-1">{label}</Text>
+      {label ? <Text className="body-md font-medium text-neutral-700 mb-1">{label}</Text> : null}
       
       <View 
         className={`flex-row items-center border rounded-xl bg-neutral-50 px-4 h-14 ${

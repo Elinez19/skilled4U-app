@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { InputField } from "../../components/InputField";
 import { OAuthButton } from "../../components/OAuthButton";
+import { LocationReminderModal } from "../../components/LocationReminderModal";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -12,13 +13,20 @@ export default function SignInScreen() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showLocationModal, setShowLocationModal] = useState(false);
+
   const handleSignIn = () => {
     setIsLoading(true);
     // Simulate sign-in for now
     setTimeout(() => {
       setIsLoading(false);
-      router.replace("/(auth)/profile-setup");
+      setShowLocationModal(true);
     }, 1500);
+  };
+
+  const proceedAfterLogin = () => {
+    setShowLocationModal(false);
+    router.replace("/(auth)/profile-setup");
   };
 
   return (
@@ -89,6 +97,12 @@ export default function SignInScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <LocationReminderModal 
+        visible={showLocationModal} 
+        onClose={proceedAfterLogin} 
+        onEnable={proceedAfterLogin} 
+      />
     </SafeAreaView>
   );
 }
