@@ -38,7 +38,7 @@ export default function AllServicesScreen() {
       <View className="px-5 pt-2 pb-4">
         {/* Header */}
         <TouchableOpacity onPress={() => router.back()} className="mb-4 mt-2">
-          <Ionicons name="arrow-back" size={28} color="#0D253C" />
+          <Ionicons name="chevron-back" size={28} color="#0D253C" />
         </TouchableOpacity>
         
         <Text className="text-[22px] font-bold text-[#0D253C] mb-4">All Services</Text>

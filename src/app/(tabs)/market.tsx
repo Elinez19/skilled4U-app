@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { images } from "../../constants/images";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -82,6 +83,7 @@ export default function MarketScreen() {
           {CATEGORIES.map((cat) => (
             <TouchableOpacity 
               key={cat.id} 
+              onPress={() => router.push({ pathname: '/market-store', params: { category: cat.title, categoryId: cat.id } })}
               className={`w-[48%] h-36 rounded-xl border ${cat.borderColor} ${cat.bgColor} p-3 mb-4 flex-col justify-between overflow-hidden`}
               activeOpacity={0.7}
             >

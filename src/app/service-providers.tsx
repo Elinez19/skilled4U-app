@@ -23,7 +23,7 @@ export default function ServiceProvidersScreen() {
         {/* Header */}
         <View className="px-5 pt-2">
           <TouchableOpacity onPress={() => router.back()} className="mb-4 mt-2">
-            <Ionicons name="arrow-back" size={28} color="#0D253C" />
+            <Ionicons name="chevron-back" size={28} color="#0D253C" />
           </TouchableOpacity>
           
           <Text className="text-[15px] font-semibold text-slate-600">

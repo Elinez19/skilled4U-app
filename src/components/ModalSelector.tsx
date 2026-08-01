@@ -47,7 +47,7 @@ export function ModalSelector({
           {/* Header */}
           <View className="flex-row items-center px-6 py-4 border-b border-neutral-100">
             <TouchableOpacity onPress={onClose} className="mr-4 p-2 -ml-2">
-              <Ionicons name="arrow-back" size={24} color="#001328" />
+              <Ionicons name="chevron-back" size={24} color="#001328" />
             </TouchableOpacity>
             <Text className="h3 flex-1">{title}</Text>
           </View>

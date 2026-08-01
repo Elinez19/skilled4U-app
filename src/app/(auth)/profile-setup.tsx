@@ -186,7 +186,7 @@ export default function ProfileSetupScreen() {
       <ModalSelector
         visible={showHearAboutModal}
         onClose={() => setShowHearAboutModal(false)}
-        title="How did you hear about Wrkman?"
+        title="How did you hear about Skilled4U?"
         searchPlaceholder="Search an option"
         options={HEAR_ABOUT_OPTIONS}
         iconName="help-circle-outline"

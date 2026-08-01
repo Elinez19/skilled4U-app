@@ -12,6 +12,7 @@ import smallAppliances from "@/assets/images/small_appliances.png";
 import cookingAppliances from "@/assets/images/cooking_appliances.png";
 import internetRouter from "@/assets/images/internet_router.png";
 import deliveryTrucks from "@/assets/images/delivery_trucks.png";
+import paintBucket from "@/assets/images/paint_bucket.png";
 
 export const images = {
   onboardingPainter,
@@ -27,4 +28,5 @@ export const images = {
   cookingAppliances,
   internetRouter,
   deliveryTrucks,
+  paintBucket,
 };
