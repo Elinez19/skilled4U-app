@@ -15,10 +15,33 @@ import { ServiceSelectionModal } from "../../components/home/ServiceSelectionMod
 import { SpecialPromos } from "../../components/home/SpecialPromos";
 import { TrendingProducts } from "../../components/home/TrendingProducts";
 import { Category, POPULAR_CATEGORIES } from "../../data/categories";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { fetchUserLocation } from "../../services/features/location/locationSlice";
+import { LocationPermissionModal } from "../../components/home/LocationPermissionModal";
 
 export default function TabsIndex() {
   const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);
   const [isModalVisible, setIsModalVisible] = React.useState(false);
+  const [isLocationModalVisible, setIsLocationModalVisible] = React.useState(false);
+
+  const dispatch = useAppDispatch();
+  const { address, status } = useAppSelector((state) => state.location);
+
+  React.useEffect(() => {
+    // If we haven't asked yet and don't have a location, show our custom modal
+    if (status === "idle") {
+      setIsLocationModalVisible(true);
+    }
+  }, [status]);
+
+  const handleGrantLocation = () => {
+    setIsLocationModalVisible(false);
+    dispatch(fetchUserLocation());
+  };
+
+  const handleSkipLocation = () => {
+    setIsLocationModalVisible(false);
+  };
 
   const handleCategoryPress = (category: Category) => {
     setSelectedCategory(category);
@@ -31,7 +54,7 @@ export default function TabsIndex() {
         showsVerticalScrollIndicator={false}
       >
         <HomeHeader 
-          locationTitle="968 Idris Gidado St, Abuja"
+          locationTitle={status === "loading" ? "Fetching location..." : address || "Lagos, Nigeria"}
           onEditLocation={() => console.log("Edit location")}
           onNotificationPress={() => console.log("Notifications")}
         />
@@ -78,6 +101,12 @@ export default function TabsIndex() {
             router.push(`/service-providers?categoryId=${selectedCategory.id}`);
           }
         }}
+      />
+
+      <LocationPermissionModal
+        isVisible={isLocationModalVisible}
+        onRequestPermission={handleGrantLocation}
+        onSkip={handleSkipLocation}
       />
     </SafeAreaView>
   );

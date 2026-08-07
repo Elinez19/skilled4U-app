@@ -31,7 +31,7 @@ export default function OnboardingScreen() {
       <Swiper
         ref={swiperRef}
         loop={false}
-        onIndexChanged={(index) => setActiveIndex(index)}
+        onMomentumScrollEnd={(e, state) => setActiveIndex(state.index)}
         dot={<View className="w-2 h-2 rounded-full bg-neutral-200 mx-1" />}
         activeDot={<View className="w-8 h-2 rounded-full bg-primary mx-1" />}
         showsPagination={true}
