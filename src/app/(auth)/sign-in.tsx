@@ -1,27 +1,103 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { InputField } from "../../components/InputField";
 import { OAuthButton } from "../../components/OAuthButton";
 import { LocationReminderModal } from "../../components/LocationReminderModal";
+import { useCustomerAuth } from "../../hooks/useCustomerAuth";
+import Toast from "react-native-toast-message";
+import { tokenCache } from "../../lib/tokenCache";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { handleLogin, handleGoogleAuth, isLoading } = useCustomerAuth();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    redirectUri: "https://auth.expo.io/@elinez/skilled4u-app",
+  });
+
+  useEffect(() => {
+    const handleGoogleResponse = async () => {
+      if (response?.type === 'success') {
+        const { authentication } = response;
+        if (authentication?.idToken) {
+          try {
+            const res = await handleGoogleAuth({ 
+              idToken: authentication.idToken 
+            });
+            
+            const token = res?.data?.token || res?.token;
+            if (token) {
+              await tokenCache.saveToken('userToken', token);
+            }
+            
+            Toast.show({
+              type: 'success',
+              text1: 'Google Sign In Success',
+              text2: 'Welcome back to Skilled4U!',
+            });
+            setShowLocationModal(true);
+          } catch (error: any) {
+            Toast.show({
+              type: 'error',
+              text1: 'Google Sign In Failed',
+              text2: error?.message || 'Could not authenticate with Google.',
+            });
+          }
+        }
+      }
+    };
+    handleGoogleResponse();
+  }, [response]);
 
   const [showLocationModal, setShowLocationModal] = useState(false);
 
-  const handleSignIn = () => {
-    setIsLoading(true);
-    // Simulate sign-in for now
-    setTimeout(() => {
-      setIsLoading(false);
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing fields',
+        text2: 'Please enter your email and password.',
+      });
+      return;
+    }
+
+    try {
+      const response = await handleLogin({ email, password });
+      
+      // The token should be in response.data.token if backend structure is as expected.
+      // Adjust if backend returns token directly on response.
+      const token = response?.data?.token || response?.token;
+      
+      if (token) {
+        await tokenCache.saveToken('userToken', token);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Welcome back!',
+        text2: 'You have successfully signed in.',
+      });
+      
       setShowLocationModal(true);
-    }, 1500);
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Sign In Failed',
+        text2: error?.message || 'Invalid credentials or server error.',
+      });
+    }
   };
 
   const proceedAfterLogin = () => {
@@ -84,7 +160,8 @@ export default function SignInScreen() {
           <OAuthButton
             provider="google"
             title="Continue with Google"
-            onPress={() => console.log("Google OAuth pressed")}
+            onPress={() => promptAsync()}
+            disabled={!request}
             className="mb-6"
           />
 

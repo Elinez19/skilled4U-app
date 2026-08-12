@@ -30,6 +30,34 @@ export const setupProfile = createAsyncThunkWithHandler(
   }
 );
 
+export const resendVerification = createAsyncThunkWithHandler(
+  'auth/resendVerification',
+  async (data: any, thunkAPI) => {
+    return await authService.resendVerification(data);
+  }
+);
+
+export const getAccessToken = createAsyncThunkWithHandler(
+  'auth/getAccessToken',
+  async (_, thunkAPI) => {
+    return await authService.getAccessToken();
+  }
+);
+
+export const forgotPassword = createAsyncThunkWithHandler(
+  'auth/forgotPassword',
+  async (data: any, thunkAPI) => {
+    return await authService.forgotPassword(data);
+  }
+);
+
+export const resetPassword = createAsyncThunkWithHandler(
+  'auth/resetPassword',
+  async (data: any, thunkAPI) => {
+    return await authService.resetPassword(data);
+  }
+);
+
 export const logout = createAsyncThunkWithHandler(
   'auth/logout',
   async (_, thunkAPI) => {
@@ -87,6 +115,30 @@ export const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
       });
   },
 });

@@ -31,6 +31,34 @@ export const changePassword = createAsyncThunkWithHandler(
   }
 );
 
+export const requestEmailChange = createAsyncThunkWithHandler(
+  'profile/requestEmailChange',
+  async (data: any) => {
+    return await profileService.requestEmailChange(data);
+  }
+);
+
+export const confirmEmailChange = createAsyncThunkWithHandler(
+  'profile/confirmEmailChange',
+  async (data: any) => {
+    return await profileService.confirmEmailChange(data);
+  }
+);
+
+export const requestDeleteAccount = createAsyncThunkWithHandler(
+  'profile/requestDeleteAccount',
+  async () => {
+    return await profileService.requestDeleteAccount();
+  }
+);
+
+export const confirmDeleteAccount = createAsyncThunkWithHandler(
+  'profile/confirmDeleteAccount',
+  async (data: any) => {
+    return await profileService.confirmDeleteAccount(data);
+  }
+);
+
 export const profileSlice = createSlice({
   name: 'profile',
   initialState,
@@ -66,6 +94,66 @@ export const profileSlice = createSlice({
         // Optionally update profile state with updated user data
       })
       .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(requestEmailChange.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(requestEmailChange.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(requestEmailChange.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(confirmEmailChange.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(confirmEmailChange.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(confirmEmailChange.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(requestDeleteAccount.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(requestDeleteAccount.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(requestDeleteAccount.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
+      })
+      .addCase(confirmDeleteAccount.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(confirmDeleteAccount.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(confirmDeleteAccount.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;

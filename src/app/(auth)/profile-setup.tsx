@@ -10,6 +10,8 @@ import { InputField } from "../../components/InputField";
 import { LocationAutocomplete } from "../../components/LocationAutocomplete";
 import { ModalSelector } from "../../components/ModalSelector";
 import { SelectField } from "../../components/SelectField";
+import { useCustomerAuth } from "../../hooks/useCustomerAuth";
+import Toast from "react-native-toast-message";
 
 const COUNTRIES = [
   { label: "Canada", value: "CA", subLabel: "+1" },
@@ -34,11 +36,11 @@ const HEAR_ABOUT_OPTIONS = [
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const { handleProfileSetup, isLoading } = useCustomerAuth();
   
   const [avatar, setAvatar] = useState<string | null>(null);
-  const [fullName, setFullName] = useState("Ndenwa Elijah");
-  const [email, setEmail] = useState("elijahndenwa19@gmail.com");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phoneCode, setPhoneCode] = useState("+234");
   const [phoneNumber, setPhoneNumber] = useState("");
   
@@ -64,14 +66,35 @@ export default function ProfileSetupScreen() {
     }
   };
 
-  const handleSave = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+  const handleSave = async () => {
+    try {
+      // Create payload matching setupCustomerProfileSchema
+      const payload = {
+        fullName,
+        email,
+        phoneNumber: `${phoneCode}${phoneNumber}`,
+        address,
+        hearAboutUs: hearAbout
+      };
+
+      await handleProfileSetup(payload);
+      
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Saved',
+        text2: 'Your profile has been successfully set up.',
+      });
+
       // Proceed to main app (tabs)
       // @ts-ignore: bypass strict route typing if it hasn't caught the new tabs directory yet
       router.replace("/(tabs)");
-    }, 1500);
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Setup Failed',
+        text2: error?.message || 'Could not save profile setup.',
+      });
+    }
   };
 
   return (
@@ -130,10 +153,14 @@ export default function ProfileSetupScreen() {
                 </Text>
                 <Ionicons name="chevron-down" size={16} color="#001328" />
               </TouchableOpacity>
-              <View className="flex-1 border border-primary rounded-xl bg-white px-4 h-14 justify-center">
-                <Text className="text-base text-neutral-400" style={{ fontFamily: "Poppins-Regular" }}>
-                  Enter phone number
-                </Text>
+              <View className="flex-1">
+                <InputField
+                  label=""
+                  placeholder="Enter phone number"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                />
               </View>
             </View>
           </View>

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useEffect, useRef } from "react";
+import { Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../../constants/images";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -71,7 +71,7 @@ export default function MarketScreen() {
         </Text>
       </View>
       {/* Small blue line under banner */}
-      <View className="bg-[#00B7FF] h-1 w-full" />
+      <View className="bg-primary h-1 w-full" />
 
       <ScrollView 
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}

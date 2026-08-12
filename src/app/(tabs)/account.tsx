@@ -1,8 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const MENU_ITEMS = [
   { id: "1", title: "Address Book", icon: "map-pin", type: "Feather" },
@@ -21,7 +20,7 @@ export default function AccountScreen() {
         {/* Profile Card */}
         <View className="bg-white rounded-3xl p-5 mb-6 border border-gray-100 shadow-sm">
           <View className="flex-row justify-between items-start mb-4">
-            <View className="w-[70px] h-[70px] bg-gray-100 rounded-full items-center justify-center">
+            <View className="w-17.5 h-17.5 bg-gray-100 rounded-full items-center justify-center">
               <Feather name="image" size={24} color="#9ca3af" />
             </View>
             <TouchableOpacity 

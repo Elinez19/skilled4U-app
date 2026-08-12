@@ -1,15 +1,14 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Modal } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../constants/images";
 
 const BRANDS = ["All", "LG", "Hisense", "Scanfrost", "Bruhm", "Kanion", "Panasonic"];
 
 const getStoreData = (categoryTitle: string) => {
-  const isPaints = categoryTitle === "Paints";
-  
+
   let products = [];
   let imageSource = images.paintBucket;
   let description = "We are a one stop shop for all things. We deliver if needed.";
@@ -118,7 +117,7 @@ export default function MarketStoreScreen() {
       >
         {/* Store Info */}
         <View className="flex-row items-center mb-6">
-          <View className="w-16 h-16 rounded-full bg-[#00B7FF] items-center justify-center mr-4">
+          <View className="w-16 h-16 rounded-full bg-primary items-center justify-center mr-4">
             <Text className="text-white font-bold text-3xl">W</Text>
           </View>
           <View className="flex-1">
@@ -130,7 +129,7 @@ export default function MarketStoreScreen() {
           </View>
         </View>
 
-        <View className="h-[1px] w-full bg-gray-200 mb-6" />
+        <View className="h-px w-full bg-gray-200 mb-6" />
 
         {/* Description */}
         <Text className="text-[#0F2846] text-sm leading-5 mb-6">
@@ -138,7 +137,7 @@ export default function MarketStoreScreen() {
         </Text>
 
         {/* Contact Button */}
-        <TouchableOpacity className="w-full bg-[#00B7FF] rounded-xl py-3.5 items-center mb-6" activeOpacity={0.8}>
+        <TouchableOpacity className="w-full bg-primary rounded-xl py-3.5 items-center mb-6" activeOpacity={0.8}>
           <Text className="text-white font-semibold text-base">Contact Store</Text>
         </TouchableOpacity>
 
@@ -229,7 +228,7 @@ export default function MarketStoreScreen() {
           activeOpacity={1} 
           onPress={() => setIsSortModalVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} className="bg-white rounded-t-3xl p-6 min-h-[300px]">
+          <TouchableOpacity activeOpacity={1} className="bg-white rounded-t-3xl p-6 min-h-75">
             <View className="flex-row justify-between items-center mb-6">
               <Text className="text-[#0F2846] font-bold text-xl">Sort by Price</Text>
               <TouchableOpacity onPress={() => setIsSortModalVisible(false)}>
@@ -267,7 +266,7 @@ export default function MarketStoreScreen() {
           activeOpacity={1} 
           onPress={() => setIsBrandModalVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} className="bg-white rounded-t-3xl p-6 h-[500px]">
+          <TouchableOpacity activeOpacity={1} className="bg-white rounded-t-3xl p-6 h-125">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-[#0F2846] font-bold text-xl">Brand</Text>
               <TouchableOpacity onPress={() => setIsBrandModalVisible(false)}>
