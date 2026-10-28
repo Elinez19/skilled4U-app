@@ -37,7 +37,7 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color as string} />
           ),
         }}
       />
@@ -49,7 +49,7 @@ export default function TabsLayout() {
             <MaterialCommunityIcons 
               name={focused ? "tools" : "tools"} 
               size={24} 
-              color={color} 
+              color={color as string} 
             />
           ),
         }}
@@ -82,7 +82,7 @@ export default function TabsLayout() {
         options={{
           title: "Support",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "headset" : "headset-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "headset" : "headset-outline"} size={24} color={color as string} />
           ),
         }}
       />
@@ -91,7 +91,7 @@ export default function TabsLayout() {
         options={{
           title: "Account",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color as string} />
           ),
         }}
       />

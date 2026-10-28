@@ -13,7 +13,7 @@ export function HomeBanner() {
     { title: "Need Emergency Repairs?", subtitle: "24/7 service available now" }
   ];
 
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {

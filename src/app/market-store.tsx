@@ -76,7 +76,7 @@ const getStoreData = (categoryTitle: string) => {
     description = "We are a one stop shop for all things painting. We sell quality paints and other accessories such as Wallpaper, paint brushes, rollers and screeding materials. etc.\n\nWe deliver if needed.";
   }
 
-  return { products, description, storeName: `skilled4U ${categoryTitle} Store` };
+  return { products, description, storeName: `Skilled4U ${categoryTitle} Store` };
 };
 
 export default function MarketStoreScreen() {

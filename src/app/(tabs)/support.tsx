@@ -10,10 +10,10 @@ const SUPPORT_LINKS = [
 ];
 
 const FAQS = [
-  "Is skilled4U Nationwide?",
+  "Is Skilled4U Nationwide?",
   "Is it Free?",
   "How do pros get paid?",
-  "skilled4U Payment Policy (Nigeria)?",
+  "Skilled4U Payment Policy (Nigeria)?",
   "Want to Login/Signup as a Provider?"
 ];
 
@@ -58,7 +58,7 @@ export default function SupportScreen() {
                 {isExpanded && (
                   <View className="px-4 pb-4 pt-1">
                     <Text className="text-gray-500 text-sm leading-5">
-                      Yes, skilled4U connects users with professionals across the nation. (Dummy content to show the expanded state)
+                      Yes, Skilled4U connects users with professionals across the nation. (Dummy content to show the expanded state)
                     </Text>
                   </View>
                 )}

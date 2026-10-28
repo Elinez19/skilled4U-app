@@ -1,6 +1,6 @@
 export default {
   expo: {
-    name: "skilled4U-app",
+    name: "Skilled4U",
     slug: "skilled4u-app",
     version: "1.0.0",
     orientation: "portrait",
@@ -14,7 +14,7 @@ export default {
     android: {
       package: "com.elinez.skilled4uapp",
       adaptiveIcon: {
-        backgroundColor: "#ffffff",
+        backgroundColor: "#F4FAFF",
         foregroundImage: "./assets/images/icon.png",
       },
       predictiveBackGestureEnabled: false,
@@ -28,18 +28,18 @@ export default {
         "expo-splash-screen",
         {
           image: "./assets/images/splash.png",
-          imageWidth: 200,
+          imageWidth: 260,
           resizeMode: "contain",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#F4FAFF",
           dark: {
-            backgroundColor: "#ffffff",
+            backgroundColor: "#F4FAFF",
           },
         },
       ],
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow skilled4U to use your location to find nearby artisans."
+          "locationAlwaysAndWhenInUsePermission": "Allow Skilled4U to use your location to find nearby artisans."
         }
       ],
       "expo-image",
@@ -56,7 +56,7 @@ export default {
     ],
     experiments: {
       typedRoutes: true,
-      reactCompiler: true,
+      reactCompiler: false,
     },
     extra: {
       eas: {

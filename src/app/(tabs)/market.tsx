@@ -37,7 +37,7 @@ const BANNERS = [
 ];
 
 export default function MarketScreen() {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const currentIndexRef = useRef(0);
 
   useEffect(() => {

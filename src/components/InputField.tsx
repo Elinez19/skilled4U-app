@@ -1,12 +1,21 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Text, TextInput, TextInputProps, TouchableOpacity, View } from "react-native";
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
   error?: string;
+  leftIcon?: keyof typeof Ionicons.glyphMap;
 }
 
-export function InputField({ label, error, secureTextEntry, className, ...props }: InputFieldProps) {
+export function InputField({
+  label,
+  error,
+  secureTextEntry,
+  leftIcon,
+  className,
+  ...props
+}: InputFieldProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -14,38 +23,58 @@ export function InputField({ label, error, secureTextEntry, className, ...props 
 
   return (
     <View className={`w-full mb-4 ${className || ""}`}>
-      {label ? <Text className="body-md font-medium text-neutral-700 mb-1">{label}</Text> : null}
-      
-      <View 
-        className={`flex-row items-center border rounded-xl bg-neutral-50 px-4 h-14 ${
-          error ? "border-error" : isFocused ? "border-primary" : "border-neutral-300"
+      {label ? (
+        <Text
+          className="text-[14px] text-[#003B73] mb-1.5"
+          style={{ fontFamily: "Poppins-SemiBold" }}
+        >
+          {label}
+        </Text>
+      ) : null}
+
+      <View
+        className={`flex-row items-center border rounded-2xl bg-white px-4 h-14 ${
+          error
+            ? "border-error bg-red-50/20"
+            : isFocused
+              ? "border-[#00A8E8] bg-[#F8FDFF]"
+              : "border-[#D0E8F8]"
         }`}
       >
+        {leftIcon ? (
+          <Ionicons
+            name={leftIcon}
+            size={20}
+            color={isFocused ? "#00A8E8" : "#6889A8"}
+            style={{ marginRight: 10 }}
+          />
+        ) : null}
+
         <TextInput
-          className="flex-1 text-base text-neutral-900 h-full"
+          className="flex-1 text-[15px] text-[#003B73] h-full"
           style={{ fontFamily: "Poppins-Regular" }}
-          placeholderTextColor="#9ca3af" // neutral-400
+          placeholderTextColor="#7A9BB8"
           secureTextEntry={isPassword && !isPasswordVisible}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}
         />
-        
+
         {isPassword && (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-            className="ml-2 p-2"
+            className="ml-2 p-1.5"
           >
-            <Text className="text-primary body-sm font-medium">
-              {isPasswordVisible ? "Hide" : "Show"}
-            </Text>
+            <Ionicons
+              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              size={20}
+              color="#6889A8"
+            />
           </TouchableOpacity>
         )}
       </View>
 
-      {error && (
-        <Text className="text-error body-sm mt-1">{error}</Text>
-      )}
+      {error ? <Text className="text-error body-sm mt-1">{error}</Text> : null}
     </View>
   );
 }

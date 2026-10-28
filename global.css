@@ -8,17 +8,17 @@
   /* ==============================
      PRIMARY COLORS
   ============================== */
-  --color-primary-50: #e5f7ff;
-  --color-primary-100: #ccf0ff;
-  --color-primary-200: #99e2ff;
-  --color-primary-300: #66d3ff;
-  --color-primary-400: #33c5ff;
-  --color-primary: #00B7FF; /* 500 */
-  --color-primary-600: #0092cc;
-  --color-primary-700: #006e99;
-  --color-primary-800: #004966;
-  --color-primary-900: #002533;
-  --color-primary-950: #00121a;
+  --color-primary-50: #e6f7ff;
+  --color-primary-100: #ccefff;
+  --color-primary-200: #99dfff;
+  --color-primary-300: #66cfff;
+  --color-primary-400: #20bdff;
+  --color-primary: #00A8E8; /* 500 - Brand Blue */
+  --color-primary-600: #0088cc;
+  --color-primary-700: #006da3;
+  --color-primary-800: #004a8f;
+  --color-primary-900: #003b73;
+  --color-primary-950: #001f3f;
 
   /* ==============================
      SEMANTIC COLORS
@@ -68,7 +68,7 @@
   font-size: 32px;
   font-weight: 700;
   line-height: 38px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* h2 — Section Title: 24px · SemiBold · 1.3 */
@@ -77,7 +77,7 @@
   font-size: 24px;
   font-weight: 600;
   line-height: 31px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* h3 — Card / Module Title: 20px · SemiBold · 1.3 */
@@ -86,7 +86,7 @@
   font-size: 20px;
   font-weight: 600;
   line-height: 26px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* h4 — Subheading: 16px · Medium · 1.4 */
@@ -95,7 +95,7 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 22px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* body-lg — Important content: 16px · Regular · 1.6 */
@@ -104,7 +104,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 26px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* body-md — Body text: 14px · Regular · 1.6 */
@@ -113,7 +113,7 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 22px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* body-sm — Supporting text: 13px · Regular · 1.6 */
@@ -122,7 +122,7 @@
   font-size: 13px;
   font-weight: 400;
   line-height: 21px;
-  color: #001328;
+  color: #003b73;
 }
 
 /* caption — Labels, meta text: 11px · Regular · 1.4 */
@@ -131,5 +131,61 @@
   font-size: 11px;
   font-weight: 400;
   line-height: 15px;
-  color: #6b7280;
+  color: #5b7c99;
+}
+
+/* ==============================
+   ONBOARDING & CARD UTILITIES (BEM)
+============================== */
+
+@utility onboarding-screen {
+  flex: 1;
+  background-color: #f4faff;
+}
+
+@utility onboarding-title {
+  font-family: "Poppins-Bold";
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 36px;
+  color: #003b73;
+}
+
+@utility onboarding-subtitle {
+  font-family: "Poppins-Regular";
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  color: #5b7c99;
+}
+
+@utility onboarding-label {
+  font-family: "Poppins-SemiBold";
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #003b73;
+}
+
+@utility onboarding-card {
+  background-color: #ffffff;
+  border-width: 1.5px;
+  border-color: #d6ecfa;
+  border-radius: 16px;
+}
+
+@utility onboarding-card--active {
+  background-color: #f0f9ff;
+  border-width: 1.5px;
+  border-color: #00a8e8;
+  border-radius: 16px;
+}
+
+@utility onboarding-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: #e6f7ff;
+  align-items: center;
+  justify-content: center;
 }

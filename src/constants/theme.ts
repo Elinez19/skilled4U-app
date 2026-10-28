@@ -1,27 +1,30 @@
-// Design tokens — mirrors the Lingua design system defined in global.css.
+// Design tokens — mirrors the Skilled4U design system defined in global.css.
 // Use these constants with StyleSheet or runtime styles where NativeWind
 // className is not supported (see AGENTS.md Style Exception Rules).
 
 export const colors = {
   primary: {
-    purple: "#6c4ef5",
-    deepPurple: "#5b3bf6",
-    blue: "#4d88ff",
-    green: "#21c16b",
+    purple: "#00A8E8",
+    deepPurple: "#003B73",
+    blue: "#00B4E6",
+    green: "#10B981",
+    sky: "#E6F7FF",
+    navy: "#003B73",
+    border: "#D6ECFA",
   },
   semantic: {
-    success: "#21c16b",
-    warning: "#ffcb00",
-    streak: "#ff8a00",
-    error: "#ff4d4f",
-    info: "#4d88ff",
+    success: "#10B981",
+    warning: "#F59E0B",
+    streak: "#FF8A00",
+    error: "#EF4444",
+    info: "#3B82F6",
   },
   neutral: {
-    textPrimary: "#001328",
-    textSecondary: "#6b7280",
-    border: "#e5e7eb",
-    surface: "#f6f7fb",
-    background: "#ffffff",
+    textPrimary: "#003B73",
+    textSecondary: "#5B7C99",
+    border: "#D6ECFA",
+    surface: "#F4FAFF",
+    background: "#FFFFFF",
   },
 } as const;
 

@@ -28,7 +28,7 @@ export function LocationAutocomplete({
   const [results, setResults] = useState<LocationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const searchLocations = async (text: string) => {
     if (!text.trim()) {
@@ -47,7 +47,7 @@ export function LocationAutocomplete({
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=5`,
         {
           headers: {
-            'User-Agent': 'skilled4U-app', // Nominatim requires a User-Agent
+            'User-Agent': 'Skilled4U', // Nominatim requires a User-Agent
           }
         }
       );

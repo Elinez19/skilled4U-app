@@ -1,6 +1,13 @@
 import onboardingPainter from "@/assets/images/a-painter-1.jpg";
 import onboardingCleaner from "@/assets/images/professional-cleaner-1.jpg";
 import onboardingPlumber from "@/assets/images/professional-plumber.jpg";
+import onboardingHeroArtisan from "@/assets/images/onboarding-hero-artisan.png";
+import onboardingHeroVerified from "@/assets/images/onboarding-hero-verified.png";
+import onboardingHeroTools from "@/assets/images/onboarding-hero-tools.png";
+import onboardingBg from "@/assets/images/onboarding-bg.png";
+import logoIcon from "@/assets/images/logo-icon.png";
+import appIcon from "@/assets/images/icon.png";
+import splashImage from "@/assets/images/splash.png";
 import googleIcon from "@/assets/icons/google.png";
 import banner from "@/assets/images/banner.png";
 
@@ -18,6 +25,13 @@ export const images = {
   onboardingPainter,
   onboardingCleaner,
   onboardingPlumber,
+  onboardingHeroArtisan,
+  onboardingHeroVerified,
+  onboardingHeroTools,
+  onboardingBg,
+  logoIcon,
+  appIcon,
+  splashImage,
   googleIcon,
   banner,
   washingMachine,
