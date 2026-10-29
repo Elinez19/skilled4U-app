@@ -106,18 +106,15 @@ export default function AppLauncherScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => router.push("/(auth)/sign-in")}
-            className="px-4 py-2 rounded-full bg-white border border-[#D0E8F8]"
-          >
+          <View className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1.5 rounded-full">
+            <Ionicons name="shield-checkmark" size={14} color="#00A8E8" />
             <Text
-              className="text-[13px] text-[#003B73]"
+              className="text-[11px] text-[#003B73] ml-1"
               style={{ fontFamily: "Poppins-SemiBold" }}
             >
-              Sign In
+              Vetted Pros
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Auto-Playing Hero Visual Banner */}
@@ -223,17 +220,17 @@ export default function AppLauncherScreen() {
           ))}
         </View>
 
-        {/* Primary CTA: Customer Flow */}
+        {/* Primary CTA: Customer Flow -> Goes directly to Choose Service (no duplicate slides!) */}
         <Button
           title="Find a Skilled Artisan"
-          onPress={() => router.push("/(auth)/onboarding?role=customer")}
+          onPress={() => router.push("/(auth)/onboarding?role=customer&step=services")}
           className="mb-3.5"
         />
 
-        {/* Secondary Role Card: Artisan Flow */}
+        {/* Secondary Role Card: Artisan Flow -> Goes directly to Artisan Account Creation */}
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push("/(auth)/onboarding?role=artisan")}
+          onPress={() => router.push("/(auth)/sign-up?role=artisan")}
           style={styles.cardShadow}
           className="flex-row items-center bg-white border border-[#B8E2F8] rounded-2xl p-3.5 mb-5"
         >
@@ -259,7 +256,7 @@ export default function AppLauncherScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Footer Sign In Link */}
+        {/* Single Footer Sign In Link */}
         <View className="flex-row items-center justify-center mt-auto pt-1 pb-2">
           <Text
             className="text-[14px] text-[#5B7C99]"

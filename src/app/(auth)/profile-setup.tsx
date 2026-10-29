@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,7 +17,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 import { Button } from "../../components/Button";
-import { InputField } from "../../components/InputField";
 import { LocationAutocomplete } from "../../components/LocationAutocomplete";
 import { ModalSelector } from "../../components/ModalSelector";
 import { SelectField } from "../../components/SelectField";
@@ -29,16 +29,8 @@ import {
 } from "../../data/categories";
 import { useCustomerAuth } from "../../hooks/useCustomerAuth";
 import { setupProfile } from "../../services/features/auth/authSlice";
+import { setLocation } from "../../services/features/location/locationSlice";
 import { useAppDispatch } from "../../store/hooks";
-
-const COUNTRIES = [
-  { label: "Nigeria", value: "NG", subLabel: "+234" },
-  { label: "United States", value: "US", subLabel: "+1" },
-  { label: "United Kingdom", value: "GB", subLabel: "+44" },
-  { label: "Canada", value: "CA", subLabel: "+1" },
-  { label: "India", value: "IN", subLabel: "+91" },
-  { label: "Trinidad and Tobago", value: "TT", subLabel: "+1868" },
-];
 
 const HEAR_ABOUT_OPTIONS = [
   { label: "Google", value: "Google" },
@@ -52,34 +44,49 @@ const HEAR_ABOUT_OPTIONS = [
 export default function ProfileSetupScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useLocalSearchParams<{ role?: string; step?: string }>();
+  const params = useLocalSearchParams<{
+    role?: string;
+    step?: string;
+    fullName?: string;
+    email?: string;
+    phoneCode?: string;
+    phoneNumber?: string;
+  }>();
   const { handleProfileSetup, isLoading } = useCustomerAuth();
 
   const [mode, setMode] = useState<"artisan" | "customer">(
-    params.role === "customer" ? "customer" : "artisan"
+    params.role === "artisan" ? "artisan" : "customer"
   );
 
-  // Artisan 5-step onboarding wizard state (1: Category, 2: Personal Info, 3: Location, 4: Skills & Experience, 5: Completed)
+  // Artisan 3-step profile wizard + Step 4 Completion screen:
+  // Step 1: Craft Category
+  // Step 2: Location & Service Area (Mapbox)
+  // Step 3: Skills & Experience
+  // Step 4: You're All Set!
   const initialStep = params.step ? Number(params.step) : 1;
   const [artisanStep, setArtisanStep] = useState<number>(
-    initialStep >= 1 && initialStep <= 5 ? initialStep : 1
+    initialStep >= 1 && initialStep <= 4 ? initialStep : 1
   );
+
+  // Pre-populated account credentials from Sign Up (no duplicate inputs!)
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [fullName, setFullName] = useState(params.fullName || "");
+  const [email, setEmail] = useState(params.email || "");
+  const [phoneCode, setPhoneCode] = useState(params.phoneCode || "+234");
+  const [phoneNumber, setPhoneNumber] = useState(params.phoneNumber || "");
 
   // Artisan Step 1: Craft Category
   const [selectedCraft, setSelectedCraft] = useState<string>("plumber");
 
-  // Artisan Step 2 & Customer Shared Personal Info
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneCode, setPhoneCode] = useState("+234");
-  const [phoneNumber, setPhoneNumber] = useState("");
-
-  // Artisan Step 3: Location & Service Area
+  // Shared Location & Coordinates state
   const [address, setAddress] = useState("");
-  const [serviceRadius, setServiceRadius] = useState("");
+  const [coords, setCoords] = useState<{ lat: number; lon: number }>({
+    lat: 9.0765,
+    lon: 7.4765,
+  });
+  const [serviceRadius, setServiceRadius] = useState("5 km");
 
-  // Artisan Step 4: Skills & Experience (matches skilled4-Artisan-Onboarding-Skills-and Experience-screen.png)
+  // Artisan Step 3: Skills & Experience
   const [selectedSkills, setSelectedSkills] = useState<string[]>([
     "plumbing",
     "installation",
@@ -92,10 +99,28 @@ export default function ProfileSetupScreen() {
   const [hearAbout, setHearAbout] = useState("");
 
   // Modals state
-  const [showCountryModal, setShowCountryModal] = useState(false);
   const [showHearAboutModal, setShowHearAboutModal] = useState(false);
   const [showExperienceModal, setShowExperienceModal] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
+
+  // Hydrate account details captured on Sign Up so user never re-types them
+  useEffect(() => {
+    const loadDraftUser = async () => {
+      try {
+        const raw = await AsyncStorage.getItem("skilled4u_user_draft");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (!fullName && parsed.fullName) setFullName(parsed.fullName);
+          if (!email && parsed.email) setEmail(parsed.email);
+          if (parsed.phoneCode) setPhoneCode(parsed.phoneCode);
+          if (!phoneNumber && parsed.phoneNumber) setPhoneNumber(parsed.phoneNumber);
+        }
+      } catch {
+        // ignore storage errors
+      }
+    };
+    loadDraftUser();
+  }, []);
 
   const toggleSkill = (skillId: string) => {
     setSelectedSkills((prev) =>
@@ -135,22 +160,48 @@ export default function ProfileSetupScreen() {
     setPortfolioPhotos((prev) => prev.filter((item) => item !== uri));
   };
 
+  const syncLocationToStore = (finalAddress: string) => {
+    dispatch(
+      setLocation({
+        address: finalAddress || "Wuse 2, Abuja",
+        latitude: coords.lat,
+        longitude: coords.lon,
+        status: "success",
+      })
+    );
+  };
+
   const handleArtisanNext = async () => {
-    if (artisanStep < 4) {
+    if (artisanStep === 2 && !address.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Location Required",
+        text2: "Please search or select your service location on the map.",
+      });
+      return;
+    }
+
+    if (artisanStep < 3) {
+      if (artisanStep === 2) {
+        syncLocationToStore(address.trim());
+      }
       setArtisanStep((prev) => prev + 1);
       return;
     }
 
-    if (artisanStep === 4) {
+    if (artisanStep === 3) {
+      const finalAddress = address.trim() || "Wuse 2, Abuja";
+      syncLocationToStore(finalAddress);
+
       try {
         setIsSubmittingArtisan(true);
         await dispatch(
           setupProfile({
             craftCategory: selectedCraft,
-            fullName: fullName || "Emeka Okafor",
-            phoneNumber: `${phoneCode}${phoneNumber}`,
-            email: email || "emeka@example.com",
-            address,
+            fullName: fullName || "Artisan Pro",
+            phoneNumber: phoneNumber ? `${phoneCode}${phoneNumber}` : "",
+            email: email || "",
+            address: finalAddress,
             serviceRadius: serviceRadius || "5 km",
             skills: selectedSkills,
             experienceLevel: experienceLevel || "3 - 5 years",
@@ -161,12 +212,12 @@ export default function ProfileSetupScreen() {
         // Proceed to completion screen even if backend is offline
       } finally {
         setIsSubmittingArtisan(false);
-        setArtisanStep(5);
+        setArtisanStep(4);
       }
       return;
     }
 
-    // Step 5 -> Go to Dashboard
+    // Step 4 -> Go to Dashboard
     // @ts-ignore
     router.replace("/(tabs)");
   };
@@ -177,36 +228,61 @@ export default function ProfileSetupScreen() {
     } else if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/(auth)/onboarding?role=artisan");
+      router.replace("/(auth)/sign-up?role=artisan");
     }
   };
 
   const handleCustomerSave = async () => {
+    if (!address.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Address Required",
+        text2: "Please enter or select your location so we can find nearby artisans.",
+      });
+      return;
+    }
+
+    const finalAddress = address.trim();
+    syncLocationToStore(finalAddress);
+
+    try {
+      await AsyncStorage.setItem(
+        "skilled4u_user_draft",
+        JSON.stringify({
+          fullName: fullName || "Skilled4U Client",
+          email,
+          phoneCode,
+          phoneNumber,
+          address: finalAddress,
+          hearAboutUs: hearAbout,
+          avatar,
+          role: "customer",
+        })
+      );
+    } catch {
+      // ignore storage errors
+    }
+
     try {
       const payload = {
-        fullName,
+        fullName: fullName || "Skilled4U Client",
         email,
-        phoneNumber: `${phoneCode}${phoneNumber}`,
-        address,
-        hearAboutUs: hearAbout,
+        phoneNumber: phoneNumber ? `${phoneCode}${phoneNumber}` : "",
+        address: finalAddress,
+        hearAboutUs: hearAbout || "Google",
       };
 
       await handleProfileSetup(payload);
-
+    } catch {
+      // Allow seamless completion into the main app even when backend is offline
+    } finally {
       Toast.show({
         type: "success",
-        text1: "Profile Saved",
-        text2: "Your profile has been successfully set up.",
+        text1: "Profile Ready!",
+        text2: `Showing artisans near ${finalAddress.split(",")[0]}.`,
       });
-
       // @ts-ignore
       router.replace("/(tabs)");
-    } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: "Setup Failed",
-        text2: error?.message || "Could not save profile setup.",
-      });
     }
   };
 
@@ -223,34 +299,34 @@ export default function ProfileSetupScreen() {
     return <Ionicons name={item.iconName as any} size={22} color="#0099DF" />;
   };
 
-  // Connected 4-dot progress indicator matching the Artisan Onboarding reference screens
+  // Connected 3-dot progress indicator for Artisan Steps 1..3
   const renderStepDots = () => {
-    // Reference screens show 4 connected dots at the top for Steps 1..4
     return (
       <View className="flex-row items-center justify-center">
-        {[1, 2, 3, 4].map((dotStep, idx) => {
-          const isCompletedOrActive = dotStep <= Math.min(artisanStep, 3);
-          const isCurrent =
-            (artisanStep === 4 && dotStep === 3) || artisanStep === dotStep;
+        {[1, 2, 3].map((dotStep, idx) => {
+          const isCompletedOrActive = dotStep <= artisanStep;
+          const isCurrent = artisanStep === dotStep;
 
           return (
             <View key={dotStep} className="flex-row items-center">
               <TouchableOpacity
-                onPress={() => setArtisanStep(dotStep)}
+                onPress={() => {
+                  if (dotStep < artisanStep) {
+                    setArtisanStep(dotStep);
+                  }
+                }}
                 className={`rounded-full ${
                   isCurrent
-                    ? "w-4 h-2.5 bg-[#0099DF]"
+                    ? "w-6 h-2.5 bg-[#0099DF]"
                     : isCompletedOrActive
                       ? "w-2.5 h-2.5 bg-[#00A8E8]"
                       : "w-2.5 h-2.5 bg-[#CDE8F8]"
                 }`}
               />
-              {idx < 3 ? (
+              {idx < 2 ? (
                 <View
-                  className={`w-5 h-[1.5px] mx-1 ${
-                    dotStep < Math.min(artisanStep, 3)
-                      ? "bg-[#8CD8F8]"
-                      : "bg-[#D8EEFC]"
+                  className={`w-6 h-[1.5px] mx-1.5 ${
+                    dotStep < artisanStep ? "bg-[#8CD8F8]" : "bg-[#D8EEFC]"
                   }`}
                 />
               ) : null}
@@ -261,7 +337,6 @@ export default function ProfileSetupScreen() {
     );
   };
 
-  // Left and Right columns for Skills & Experience screen (matches reference 2-column group)
   const leftColumnSkills = ARTISAN_SKILLS_OPTIONS.filter((_, i) => i % 2 === 0);
   const rightColumnSkills = ARTISAN_SKILLS_OPTIONS.filter((_, i) => i % 2 === 1);
 
@@ -274,28 +349,25 @@ export default function ProfileSetupScreen() {
       >
         {mode === "artisan" ? (
           <View className="flex-1 justify-between">
-            {/* Top Navigation Bar with Back Arrow + 4 Connected Step Dots */}
+            {/* Top Navigation Bar with Back Arrow + 3 Connected Step Dots */}
             <View className="flex-row items-center justify-between px-6 pt-3 pb-2">
               <TouchableOpacity
                 onPress={handleArtisanBack}
-                className="w-9 h-9 items-start justify-center"
+                className="w-10 h-10 rounded-full bg-white border border-[#D6ECFA] items-center justify-center"
               >
-                <Ionicons name="arrow-back" size={24} color="#1E3A5F" />
+                <Ionicons name="arrow-back" size={20} color="#003B73" />
               </TouchableOpacity>
 
-              {artisanStep < 5 ? renderStepDots() : <View />}
+              {artisanStep < 4 ? renderStepDots() : <View />}
 
-              <TouchableOpacity
-                onPress={() => setMode("customer")}
-                className="px-2.5 py-1 rounded-full bg-white border border-[#D6ECFA]"
-              >
+              <View className="px-2.5 py-1 rounded-full bg-[#E6F7FF] border border-[#B8E2F8]">
                 <Text
-                  className="text-[11px] text-[#5B7C99]"
-                  style={{ fontFamily: "Poppins-Medium" }}
+                  className="text-[11px] text-[#003B73]"
+                  style={{ fontFamily: "Poppins-SemiBold" }}
                 >
-                  Client
+                  {artisanStep < 4 ? `Step ${artisanStep}/3` : "Done"}
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
 
             {/* =====================================================
@@ -305,19 +377,45 @@ export default function ProfileSetupScreen() {
             {artisanStep === 1 && (
               <ScrollView
                 contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
+                {fullName ? (
+                  <View className="flex-row items-center bg-white border border-[#D6ECFA] rounded-2xl px-3.5 py-2.5 mt-1 mb-3">
+                    <View className="w-8 h-8 rounded-full bg-[#E6F7FF] items-center justify-center mr-2.5">
+                      <Ionicons name="person" size={15} color="#00A8E8" />
+                    </View>
+                    <View className="flex-1">
+                      <Text
+                        className="text-[13px] text-[#003B73]"
+                        style={{ fontFamily: "Poppins-SemiBold" }}
+                        numberOfLines={1}
+                      >
+                        Welcome, {fullName}
+                      </Text>
+                      <Text
+                        className="text-[11px] text-[#5B7C99]"
+                        style={{ fontFamily: "Poppins-Regular" }}
+                        numberOfLines={1}
+                      >
+                        {email || `${phoneCode} ${phoneNumber}`}
+                      </Text>
+                    </View>
+                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                  </View>
+                ) : null}
+
                 <Text
-                  className="text-[26px] text-[#003B73] mt-2 mb-1.5"
+                  className="text-[26px] text-[#003B73] mt-1 mb-1.5"
                   style={{ fontFamily: "Poppins-Bold", lineHeight: 33 }}
                 >
                   What type of artisan{"\n"}are you?
                 </Text>
                 <Text
-                  className="text-[15px] text-[#5B7C99] mb-6"
+                  className="text-[15px] text-[#5B7C99] mb-5"
                   style={{ fontFamily: "Poppins-Regular", lineHeight: 22 }}
                 >
-                  Select the category that best describes{"\n"}your skill.
+                  Select the category that best describes{"\n"}your primary skill.
                 </Text>
 
                 <View className="flex-row flex-wrap justify-between mb-6">
@@ -329,12 +427,17 @@ export default function ProfileSetupScreen() {
                         activeOpacity={0.8}
                         onPress={() => setSelectedCraft(item.id)}
                         style={[styles.craftCard, styles.cardShadow]}
-                        className={`mb-3.5 p-3.5 rounded-2xl items-center justify-center border ${
+                        className={`mb-3.5 p-3.5 rounded-2xl items-center justify-center border relative ${
                           isSelected
                             ? "bg-[#EAF7FF] border-[#00A8E8]"
                             : "bg-white border-[#D8EEFC]"
                         }`}
                       >
+                        {isSelected ? (
+                          <View className="absolute top-2 right-2">
+                            <Ionicons name="checkmark-circle" size={16} color="#00A8E8" />
+                          </View>
+                        ) : null}
                         <View className="w-12 h-12 rounded-full bg-[#E6F7FF] items-center justify-center mb-2.5">
                           {renderCategoryIcon(item)}
                         </View>
@@ -356,96 +459,13 @@ export default function ProfileSetupScreen() {
             )}
 
             {/* =====================================================
-                STEP 2: YOUR PERSONAL INFORMATION
-                (skilled4-Artisan-Onboarding-Personal-Inforamtion-screen.png)
+                STEP 2: YOUR LOCATION & SERVICE AREA (LIVE MAPBOX)
+                (skilled4-Artisan-Onboarding-Location-screen.png)
                ===================================================== */}
             {artisanStep === 2 && (
               <ScrollView
                 contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-              >
-                <Text
-                  className="text-[26px] text-[#003B73] mt-2 mb-1.5"
-                  style={{ fontFamily: "Poppins-Bold", lineHeight: 33 }}
-                >
-                  Your Personal{"\n"}Information
-                </Text>
-                <Text
-                  className="text-[15px] text-[#5B7C99] mb-6"
-                  style={{ fontFamily: "Poppins-Regular", lineHeight: 22 }}
-                >
-                  Let&apos;s get to know you better.
-                </Text>
-
-                <InputField
-                  label="Full Name"
-                  placeholder="e.g. Emeka Okafor"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  autoCapitalize="words"
-                />
-
-                <View className="mb-4">
-                  <Text
-                    className="text-[14px] text-[#003B73] mb-1.5"
-                    style={{ fontFamily: "Poppins-SemiBold" }}
-                  >
-                    Phone Number
-                  </Text>
-                  <View className="flex-row items-center">
-                    <TouchableOpacity
-                      activeOpacity={0.75}
-                      onPress={() => setShowCountryModal(true)}
-                      className="flex-row items-center justify-center border border-[#D0E8F8] rounded-2xl bg-white px-3.5 h-14 mr-2.5"
-                    >
-                      <View className="flex-row items-center mr-1.5">
-                        <View className="w-2 h-3.5 bg-[#008751]" />
-                        <View className="w-2 h-3.5 bg-white border-y border-neutral-200" />
-                        <View className="w-2 h-3.5 bg-[#008751]" />
-                      </View>
-                      <Text
-                        className="text-[14px] text-[#003B73] mr-1"
-                        style={{ fontFamily: "Poppins-Medium" }}
-                      >
-                        {phoneCode}
-                      </Text>
-                      <Ionicons name="chevron-down" size={15} color="#3B6998" />
-                    </TouchableOpacity>
-
-                    <View className="flex-1">
-                      <InputField
-                        placeholder="812 345 6789"
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                        keyboardType="phone-pad"
-                        className="mb-0"
-                      />
-                    </View>
-                  </View>
-                </View>
-
-                <InputField
-                  label="Email Address"
-                  placeholder="e.g. emeka@example.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-
-                <View className="mt-auto pt-8">
-                  <Button title="Continue" onPress={handleArtisanNext} />
-                </View>
-              </ScrollView>
-            )}
-
-            {/* =====================================================
-                STEP 3: YOUR LOCATION
-                (skilled4-Artisan-Onboarding-Location-screen.png)
-               ===================================================== */}
-            {artisanStep === 3 && (
-              <ScrollView
-                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
                 <Text
@@ -455,44 +475,26 @@ export default function ProfileSetupScreen() {
                   Your Location
                 </Text>
                 <Text
-                  className="text-[15px] text-[#5B7C99] mb-5"
+                  className="text-[15px] text-[#5B7C99] mb-4"
                   style={{ fontFamily: "Poppins-Regular", lineHeight: 22 }}
                 >
-                  Help clients find you in your area.
+                  Help clients find you in your service area.
                 </Text>
 
-                {/* Stylized Map Preview Card matching reference */}
-                <View
-                  style={styles.cardShadow}
-                  className="w-full h-44 rounded-2xl bg-[#E8F1F8] border border-[#D0E8F8] mb-5 overflow-hidden items-center justify-center relative"
-                >
-                  {/* Decorative Map Grid & Park/Water Blocks */}
-                  <View className="absolute -top-6 left-6 w-28 h-24 bg-[#D8F0DF] rounded-xl rotate-12 opacity-70" />
-                  <View className="absolute bottom-2 left-16 w-32 h-20 bg-[#D8F0DF] rounded-xl -rotate-12 opacity-70" />
-                  <View className="absolute top-8 right-4 w-28 h-24 bg-[#CBE8FA] rounded-xl rotate-6 opacity-75" />
-                  <View className="absolute top-0 bottom-0 left-1/3 w-2.5 bg-white/85 rotate-12" />
-                  <View className="absolute top-0 bottom-0 right-1/3 w-2 bg-white/85 -rotate-12" />
-                  <View className="absolute left-0 right-0 top-1/2 h-2.5 bg-white/90 -rotate-6" />
-                  <View className="absolute left-0 right-0 top-1/4 h-1.5 bg-white/75 rotate-12" />
-
-                  {/* Center Pin Marker */}
-                  <View className="items-center justify-center">
-                    <View
-                      style={styles.pinShadow}
-                      className="w-12 h-12 rounded-full bg-[#00A8E8] items-center justify-center border-2 border-white"
-                    >
-                      <View className="w-4 h-4 rounded-full bg-white" />
-                    </View>
-                    <View className="w-3.5 h-3.5 bg-[#00A8E8] rotate-45 -mt-2" />
-                    <View className="w-4 h-1.5 rounded-full bg-[#003B73]/25 mt-1" />
-                  </View>
-                </View>
-
-                <InputField
-                  label="Address"
-                  placeholder="e.g. 12 Freedom Street, Abuja"
-                  value={address}
+                <LocationAutocomplete
+                  label="Base Address / Workshop Location"
+                  placeholder="e.g. Wuye, Abuja or Lekki, Lagos"
+                  initialValue={address}
+                  showMapPreview={true}
+                  serviceRadius={serviceRadius}
                   onChangeText={setAddress}
+                  onSelect={(loc) => {
+                    setAddress(loc.display_name);
+                    setCoords({
+                      lat: parseFloat(loc.lat) || 9.0765,
+                      lon: parseFloat(loc.lon) || 7.4765,
+                    });
+                  }}
                 />
 
                 <SelectField
@@ -509,12 +511,13 @@ export default function ProfileSetupScreen() {
             )}
 
             {/* =====================================================
-                STEP 4: SKILLS & EXPERIENCE
-                (Matches skilled4-Artisan-Onboarding-Skills-and Experience-screen.png pixel-for-pixel)
+                STEP 3: SKILLS & EXPERIENCE
+                (skilled4-Artisan-Onboarding-Skills-and Experience-screen.png)
                ===================================================== */}
-            {artisanStep === 4 && (
+            {artisanStep === 3 && (
               <ScrollView
                 contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
                 <Text
@@ -532,14 +535,19 @@ export default function ProfileSetupScreen() {
 
                 {/* Skills (Select all that apply) */}
                 <View className="mb-4">
-                  <Text className="text-[14px] text-[#003B73] mb-2" style={{ fontFamily: "Poppins-SemiBold" }}>
+                  <Text
+                    className="text-[14px] text-[#003B73] mb-2"
+                    style={{ fontFamily: "Poppins-SemiBold" }}
+                  >
                     Skills{" "}
-                    <Text className="text-[#5B7C99]" style={{ fontFamily: "Poppins-Regular" }}>
+                    <Text
+                      className="text-[#5B7C99]"
+                      style={{ fontFamily: "Poppins-Regular" }}
+                    >
                       (Select all that apply)
                     </Text>
                   </Text>
 
-                  {/* 2-Column Container matching reference layout */}
                   <View className="flex-row justify-between">
                     {/* Left Column */}
                     <View
@@ -555,14 +563,22 @@ export default function ProfileSetupScreen() {
                             onPress={() => toggleSkill(skill.id)}
                             className={`flex-row items-center px-2.5 py-2.5 my-0.5 rounded-xl border ${
                               isSelected
-                                ? "bg-white border-[#CBE7FA]"
+                                ? "bg-[#EAF7FF] border-[#00A8E8]"
                                 : "bg-transparent border-transparent"
                             }`}
                           >
                             <View className="w-9 h-9 rounded-full bg-[#E6F7FF] items-center justify-center mr-2.5">
-                              <View className="w-5 h-5 rounded-full bg-[#0099DF] items-center justify-center">
+                              <View
+                                className={`w-5 h-5 rounded-full items-center justify-center ${
+                                  isSelected ? "bg-[#0099DF]" : "bg-[#BAE6FD]"
+                                }`}
+                              >
                                 <Ionicons
-                                  name={skill.iconName as any}
+                                  name={
+                                    isSelected
+                                      ? "checkmark"
+                                      : (skill.iconName as any)
+                                  }
                                   size={12}
                                   color="#FFFFFF"
                                 />
@@ -594,13 +610,17 @@ export default function ProfileSetupScreen() {
                             onPress={() => toggleSkill(skill.id)}
                             className={`flex-row items-center px-2.5 py-2.5 my-0.5 rounded-xl border ${
                               isSelected
-                                ? "bg-white border-[#CBE7FA]"
+                                ? "bg-[#EAF7FF] border-[#00A8E8]"
                                 : "bg-transparent border-transparent"
                             }`}
                           >
                             <View className="w-9 h-9 rounded-full bg-[#E6F7FF] items-center justify-center mr-2.5">
                               <Ionicons
-                                name={skill.iconName as any}
+                                name={
+                                  isSelected
+                                    ? "checkmark-circle"
+                                    : (skill.iconName as any)
+                                }
                                 size={18}
                                 color="#0099DF"
                               />
@@ -699,7 +719,7 @@ export default function ProfileSetupScreen() {
 
                 <View className="mt-auto">
                   <Button
-                    title="Continue"
+                    title="Complete Setup"
                     onPress={handleArtisanNext}
                     isLoading={isSubmittingArtisan}
                   />
@@ -708,14 +728,12 @@ export default function ProfileSetupScreen() {
             )}
 
             {/* =====================================================
-                STEP 5: ONBOARDING COMPLETE
-                (Matches skilled4-Artisan-Onboarding-Completed-screen.png)
+                STEP 4: ONBOARDING COMPLETE
+                (skilled4-Artisan-Onboarding-Completed-screen.png)
                ===================================================== */}
-            {artisanStep === 5 && (
+            {artisanStep === 4 && (
               <View className="flex-1 px-6 pb-8 justify-center items-center">
-                {/* Glowing Checkmark Circle + Decorative Confetti */}
                 <View className="w-56 h-56 items-center justify-center relative mb-4">
-                  {/* Decorative Confetti / Sparkles */}
                   <View className="absolute top-6 left-10 w-3 h-3 rounded-full bg-[#00A8E8]/60" />
                   <View className="absolute top-4 right-12 w-3.5 h-3.5 rounded-sm bg-[#0099DF] rotate-45" />
                   <View className="absolute bottom-10 left-8 w-3 h-3 rounded-sm bg-[#20BDFF] rotate-12" />
@@ -744,9 +762,8 @@ export default function ProfileSetupScreen() {
                   className="text-[14px] text-[#5B7C99] text-center px-3 mb-8"
                   style={{ fontFamily: "Poppins-Regular", lineHeight: 22 }}
                 >
-                  Your artisan profile has been created{"\n"}and is currently
-                  under review. You&apos;ll be{"\n"}notified once it&apos;s
-                  approved.
+                  Your artisan profile has been created{"\n"}and is ready to
+                  connect you with{"\n"}nearby clients in your area.
                 </Text>
 
                 <Button
@@ -781,10 +798,11 @@ export default function ProfileSetupScreen() {
           </View>
         ) : (
           /* =====================================================
-             CUSTOMER PROFILE SETUP MODE
+             CUSTOMER PROFILE SETUP MODE (ZERO DUPLICATE FIELDS)
              ===================================================== */
           <ScrollView
             contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* Header Bar */}
@@ -794,7 +812,7 @@ export default function ProfileSetupScreen() {
                   if (router.canGoBack()) {
                     router.back();
                   } else {
-                    router.replace("/(auth)/onboarding");
+                    router.replace("/(auth)/sign-up?role=customer");
                   }
                 }}
                 className="w-10 h-10 rounded-full bg-white border border-[#D6ECFA] items-center justify-center"
@@ -806,132 +824,113 @@ export default function ProfileSetupScreen() {
                 className="text-[20px] text-[#003B73]"
                 style={{ fontFamily: "Poppins-Bold" }}
               >
-                Complete Your Profile
+                Set Your Location
               </Text>
 
               <TouchableOpacity
                 onPress={() => {
-                  setMode("artisan");
-                  setArtisanStep(4);
+                  // @ts-ignore
+                  router.replace("/(tabs)");
                 }}
-                className="px-2.5 py-1 rounded-full bg-[#E6F7FF] border border-[#B8E2F8]"
+                className="px-3 py-1.5 rounded-full bg-white border border-[#D6ECFA]"
               >
                 <Text
-                  className="text-[11px] text-[#003B73]"
-                  style={{ fontFamily: "Poppins-Medium" }}
+                  className="text-[12px] text-[#5B7C99]"
+                  style={{ fontFamily: "Poppins-SemiBold" }}
                 >
-                  Artisan
+                  Skip
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Avatar Section */}
-            <View className="items-center mt-2 mb-6">
-              <TouchableOpacity onPress={pickAvatarImage} className="relative">
-                <View className="w-28 h-28 rounded-full bg-[#E6F7FF] items-center justify-center border-2 border-[#00A8E8] overflow-hidden">
+            {/* Avatar + Verified Account Summary Card (Replaces Duplicate Name/Email/Phone Inputs) */}
+            <View className="bg-white rounded-3xl p-4 mb-5 border border-[#D6ECFA] flex-row items-center">
+              <TouchableOpacity onPress={pickAvatarImage} className="relative mr-4">
+                <View className="w-20 h-20 rounded-full bg-[#E6F7FF] items-center justify-center border-2 border-[#00A8E8] overflow-hidden">
                   {avatar ? (
                     <Image source={{ uri: avatar }} className="w-full h-full" />
                   ) : (
-                    <Ionicons name="person-outline" size={46} color="#00A8E8" />
+                    <Ionicons name="person-outline" size={34} color="#00A8E8" />
                   )}
                 </View>
-                <View className="absolute bottom-0 right-1 w-9 h-9 bg-[#003B73] rounded-full items-center justify-center border-2 border-white">
-                  <Ionicons name="camera" size={17} color="#FFFFFF" />
+                <View className="absolute bottom-0 right-0 w-7 h-7 bg-[#003B73] rounded-full items-center justify-center border-2 border-white">
+                  <Ionicons name="camera" size={13} color="#FFFFFF" />
                 </View>
               </TouchableOpacity>
-            </View>
 
-            <InputField
-              label="Full name"
-              placeholder="Enter full name"
-              value={fullName}
-              onChangeText={setFullName}
-              leftIcon="person-outline"
-            />
-
-            <InputField
-              label="Email"
-              placeholder="Enter email address"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon="mail-outline"
-            />
-
-            <View className="mb-4">
-              <Text
-                className="text-[14px] text-[#003B73] mb-1.5"
-                style={{ fontFamily: "Poppins-SemiBold" }}
-              >
-                Phone number
-              </Text>
-              <View className="flex-row">
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => setShowCountryModal(true)}
-                  className="flex-row items-center justify-center border border-[#D0E8F8] rounded-2xl bg-white px-3.5 h-14 mr-2.5"
-                >
+              <View className="flex-1">
+                <View className="flex-row items-center mb-0.5">
                   <Text
-                    className="text-[15px] text-[#003B73] mr-1.5"
+                    className="text-[16px] text-[#003B73] mr-1.5"
+                    style={{ fontFamily: "Poppins-Bold" }}
+                    numberOfLines={1}
+                  >
+                    {fullName || "Welcome to Skilled4U"}
+                  </Text>
+                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                </View>
+
+                {email ? (
+                  <Text
+                    className="text-[12px] text-[#5B7C99]"
+                    style={{ fontFamily: "Poppins-Regular" }}
+                    numberOfLines={1}
+                  >
+                    {email}
+                  </Text>
+                ) : null}
+
+                {phoneNumber ? (
+                  <Text
+                    className="text-[12px] text-[#5B7C99] mt-0.5"
                     style={{ fontFamily: "Poppins-Medium" }}
                   >
-                    {phoneCode}
+                    {phoneCode} {phoneNumber}
                   </Text>
-                  <Ionicons name="chevron-down" size={16} color="#003B73" />
-                </TouchableOpacity>
-                <View className="flex-1">
-                  <InputField
-                    placeholder="Enter phone number"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    keyboardType="phone-pad"
-                    className="mb-0"
-                  />
-                </View>
+                ) : (
+                  <Text
+                    className="text-[11px] text-[#00A8E8] mt-0.5"
+                    style={{ fontFamily: "Poppins-Medium" }}
+                  >
+                    Tap photo to add a profile picture
+                  </Text>
+                )}
               </View>
             </View>
 
+            {/* Interactive Mapbox Location & Address Search */}
             <LocationAutocomplete
-              label="Full Address"
-              placeholder="Enter Address"
+              label="Full Address / Service Location"
+              placeholder="Search neighborhood or street (e.g. Wuye, Abuja)"
               initialValue={address}
+              onChangeText={setAddress}
               onSelect={(loc) => {
                 setAddress(loc.display_name);
+                setCoords({
+                  lat: parseFloat(loc.lat) || 9.0765,
+                  lon: parseFloat(loc.lon) || 7.4765,
+                });
               }}
             />
 
             <SelectField
-              label="How did you hear about Skilled4U?"
+              label="How did you hear about Skilled4U? (Optional)"
               placeholder="Select an option"
               value={hearAbout}
               onPress={() => setShowHearAboutModal(true)}
-              className="mb-8"
+              className="mb-6"
             />
 
-            <Button
-              title="Save & Continue"
-              onPress={handleCustomerSave}
-              isLoading={isLoading}
-            />
+            <View className="mt-auto pt-2">
+              <Button
+                title="Save & Continue"
+                onPress={handleCustomerSave}
+                isLoading={isLoading}
+              />
+            </View>
           </ScrollView>
         )}
       </KeyboardAvoidingView>
-
-      {/* Country Code Selector Modal */}
-      <ModalSelector
-        visible={showCountryModal}
-        onClose={() => setShowCountryModal(false)}
-        title="Select Country"
-        searchPlaceholder="Search Country"
-        options={COUNTRIES}
-        onSelect={(val) => {
-          const selected = COUNTRIES.find((c) => c.value === val);
-          if (selected) {
-            setPhoneCode(selected.subLabel);
-          }
-        }}
-      />
 
       {/* Experience Level Modal */}
       <ModalSelector

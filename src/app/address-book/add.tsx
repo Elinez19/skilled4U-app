@@ -1,74 +1,115 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LocationAutocomplete } from "../../components/LocationAutocomplete";
+import React, { useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LocationAutocomplete, LocationResult } from "../../components/LocationAutocomplete";
+import { setLocation } from "../../services/features/location/locationSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function AddAddressScreen() {
   const router = useRouter();
-  const [addressInput, setAddressInput] = useState("");
+  const dispatch = useAppDispatch();
+  const currentAddress = useAppSelector((state) => state.location.address);
 
-  const isFilled = addressInput.length > 0;
+  const [addressInput, setAddressInput] = useState(currentAddress || "");
+  const [coords, setCoords] = useState<{ lat: number; lon: number }>({
+    lat: 9.0765,
+    lon: 7.4765,
+  });
+
+  const isFilled = addressInput.trim().length > 0;
 
   const handleUpdate = () => {
     if (isFilled) {
-      router.replace({ 
-        pathname: "/address-book", 
-        params: { newAddress: addressInput } 
-      });
+      const cleaned = addressInput.trim();
+      dispatch(
+        setLocation({
+          address: cleaned,
+          latitude: coords.lat,
+          longitude: coords.lon,
+          status: "success",
+        })
+      );
+
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace({
+          pathname: "/address-book",
+          params: { newAddress: cleaned },
+        });
+      }
     }
   };
 
-  const handleSelect = (location: any) => {
+  const handleSelect = (location: LocationResult) => {
     setAddressInput(location.display_name);
+    setCoords({
+      lat: parseFloat(location.lat) || 9.0765,
+      lon: parseFloat(location.lon) || 7.4765,
+    });
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4FAFF" }}>
       {/* Header */}
       <View className="flex-row items-center px-5 py-4">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <Feather name="arrow-left" size={24} color="#1a365d" />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 rounded-full bg-white border border-[#D6ECFA] items-center justify-center mr-3"
+        >
+          <Feather name="arrow-left" size={20} color="#003B73" />
         </TouchableOpacity>
+        <Text
+          className="text-[20px] text-[#003B73]"
+          style={{ fontFamily: "Poppins-Bold" }}
+        >
+          Service Location
+        </Text>
       </View>
 
-      <View className="flex-1 px-5 pt-2 relative z-10">
-        <View className="flex-row items-center mb-2">
-          <Ionicons name="location" size={22} color="#2563eb" className="mr-2" />
-          <Text className="text-xl font-bold text-[#1a365d]">Service Location</Text>
-        </View>
-        <Text className="text-[#1a365d] mb-6 text-[15px]">Enter the location where you need the service</Text>
-
-        {/* Input */}
-        <LocationAutocomplete 
-          label="" 
-          placeholder="Enter Address" 
-          onSelect={handleSelect}
-        />
-
-        {/* Current Location Suggestion Box (Fallback) */}
-        {!isFilled && (
-          <TouchableOpacity 
-            className="border border-gray-100 rounded-xl p-4 flex-row items-start mt-2"
+      <ScrollView
+        className="flex-1 px-5 pt-1"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-row items-center mb-1">
+          <Ionicons name="location" size={20} color="#00A8E8" />
+          <Text
+            className="text-[15px] text-[#5B7C99] ml-1.5"
+            style={{ fontFamily: "Poppins-Regular" }}
           >
-            <Ionicons name="location" size={18} color="#0ea5e9" className="mt-0.5 mr-3" />
-            <View className="flex-1">
-              <Text className="text-[#1a365d] font-medium text-[15px] mb-1">Current Location</Text>
-              <Text className="text-[#1a365d] text-sm">Tap for select your current location.</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
+            Search or select where you need the service
+          </Text>
+        </View>
 
-      {/* Button */}
-      <View className="px-5 py-4 bg-white z-0">
-        <TouchableOpacity 
+        <View className="mt-3">
+          <LocationAutocomplete
+            label="Full Address"
+            placeholder="Search street, neighborhood or city..."
+            initialValue={addressInput}
+            onChangeText={setAddressInput}
+            onSelect={handleSelect}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Update Button */}
+      <View className="px-5 py-4 bg-[#F4FAFF]">
+        <TouchableOpacity
           onPress={handleUpdate}
           disabled={!isFilled}
-          className={`rounded-xl py-4 items-center justify-center ${isFilled ? "bg-[#0ea5e9]" : "bg-[#bae6fd]"}`}
+          className={`rounded-full py-4 items-center justify-center ${
+            isFilled ? "bg-[#00A8E8]" : "bg-[#BAE6FD]"
+          }`}
         >
-          <Text className="font-bold text-white text-[16px]">Update Address</Text>
+          <Text
+            className="text-white text-[16px]"
+            style={{ fontFamily: "Poppins-SemiBold" }}
+          >
+            Update Address
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

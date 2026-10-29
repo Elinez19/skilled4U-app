@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { EliteProviders } from "../../components/home/EliteProviders";
 import { HomeBanner } from "../../components/home/HomeBanner";
 import { HomeHeader } from "../../components/home/HomeHeader";
+import { LocationPermissionModal } from "../../components/home/LocationPermissionModal";
 import { OurPartners } from "../../components/home/OurPartners";
 import { ProductDeals } from "../../components/home/ProductDeals";
 import { SearchAndWallet } from "../../components/home/SearchAndWallet";
@@ -15,9 +16,8 @@ import { ServiceSelectionModal } from "../../components/home/ServiceSelectionMod
 import { SpecialPromos } from "../../components/home/SpecialPromos";
 import { TrendingProducts } from "../../components/home/TrendingProducts";
 import { Category, POPULAR_CATEGORIES } from "../../data/categories";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { fetchUserLocation } from "../../services/features/location/locationSlice";
-import { LocationPermissionModal } from "../../components/home/LocationPermissionModal";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function TabsIndex() {
   const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);
@@ -28,11 +28,11 @@ export default function TabsIndex() {
   const { address, status } = useAppSelector((state) => state.location);
 
   React.useEffect(() => {
-    // If we haven't asked yet and don't have a location, show our custom modal
-    if (status === "idle") {
+    // Only prompt if location wasn't already configured during Profile Setup
+    if (status === "idle" && !address) {
       setIsLocationModalVisible(true);
     }
-  }, [status]);
+  }, [status, address]);
 
   const handleGrantLocation = () => {
     setIsLocationModalVisible(false);
@@ -47,22 +47,27 @@ export default function TabsIndex() {
     setSelectedCategory(category);
     setIsModalVisible(true);
   };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top", "left", "right"]}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <HomeHeader 
-          locationTitle={status === "loading" ? "Fetching location..." : address || "Lagos, Nigeria"}
-          onEditLocation={() => console.log("Edit location")}
+        <HomeHeader
+          locationTitle={
+            status === "loading"
+              ? "Fetching location..."
+              : address || "Wuse 2, Abuja"
+          }
+          onEditLocation={() => router.push("/address-book/add")}
           onNotificationPress={() => console.log("Notifications")}
         />
 
         <HomeBanner />
         <SearchAndWallet />
 
-        <SectionHeader title="Popular" onSeeAll={() => router.push('/all-services')} />
+        <SectionHeader title="Popular" onSeeAll={() => router.push("/all-services")} />
         <View className="flex-row flex-wrap justify-between mb-2">
           {POPULAR_CATEGORIES.map((category) => (
             <ServiceCategoryCard
@@ -89,14 +94,13 @@ export default function TabsIndex() {
 
         <SectionHeader title="Our Partners" showSeeAll={false} />
         <OurPartners />
-
       </ScrollView>
 
       <ServiceSelectionModal
         isVisible={isModalVisible}
         category={selectedCategory}
         onClose={() => setIsModalVisible(false)}
-        onGoPress={(services) => {
+        onGoPress={() => {
           if (selectedCategory) {
             router.push(`/service-providers?categoryId=${selectedCategory.id}`);
           }

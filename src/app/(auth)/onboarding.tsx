@@ -51,22 +51,24 @@ const CUSTOMER_SLIDES = [
 ];
 
 export default function OnboardingScreen() {
-  const params = useLocalSearchParams<{ role?: string }>();
+  const params = useLocalSearchParams<{ role?: string; step?: string }>();
   const [role, setRole] = useState<"customer" | "artisan">(
     params.role === "artisan" ? "artisan" : "customer"
   );
 
-  // Customer flow state: 3 auto-playing welcome slides (indices 0, 1, 2) + step 4 (Choose Service screen)
+  // Open directly on "What service do you need?" unless explicitly requesting slides,
+  // avoiding duplicate welcome slides after the AppLauncherScreen.
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false);
-  const [showChooseService, setShowChooseService] = useState(false);
+  const [showChooseService, setShowChooseService] = useState(
+    params.step !== "slides"
+  );
   const [serviceSearch, setServiceSearch] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>(["plumbing"]);
 
   const slideProgress = useRef(new Animated.Value(0)).current;
 
-  // Seamless auto-play with animated pill progress bar
   useEffect(() => {
     if (role !== "customer" || showChooseService || isAutoPlayPaused) {
       slideProgress.stopAnimation();
@@ -86,7 +88,6 @@ export default function OnboardingScreen() {
         if (activeIndex < CUSTOMER_SLIDES.length - 1) {
           swiperRef.current?.scrollBy(1, true);
         } else {
-          // Loop smoothly back to slide 0 so the showcase continues auto-playing
           swiperRef.current?.scrollBy(-(CUSTOMER_SLIDES.length - 1), true);
         }
       }
@@ -132,7 +133,7 @@ export default function OnboardingScreen() {
     } catch {
       // ignore storage errors
     }
-    router.push("/(auth)/sign-in?role=customer");
+    router.push("/(auth)/sign-up?role=customer");
   };
 
   const renderServiceIcon = (item: OnboardingServiceItem) => {
@@ -183,7 +184,7 @@ export default function OnboardingScreen() {
                 className="text-[12px] text-[#003B73]"
                 style={{ fontFamily: "Poppins-Medium" }}
               >
-                Switch to Customer
+                Switch to Client
               </Text>
             </TouchableOpacity>
           </View>
@@ -203,7 +204,7 @@ export default function OnboardingScreen() {
           <View className="px-6 pt-2">
             <Button
               title="Get Started"
-              onPress={() => router.push("/(auth)/profile-setup?role=artisan")}
+              onPress={() => router.push("/(auth)/sign-up?role=artisan")}
               className="mb-4"
             />
 
@@ -232,7 +233,7 @@ export default function OnboardingScreen() {
   }
 
   // ==========================================================
-  // CUSTOMER STEP 4: CHOOSE SERVICE (Matches skilled4-onboarding-choose-service.png)
+  // CUSTOMER CHOOSE SERVICE SCREEN (Matches skilled4-onboarding-choose-service.png)
   // ==========================================================
   if (showChooseService) {
     const filteredServices = CUSTOMER_ONBOARDING_SERVICES.filter((s) =>
@@ -254,10 +255,16 @@ export default function OnboardingScreen() {
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center">
                 <TouchableOpacity
-                  onPress={() => setShowChooseService(false)}
-                  className="mr-2 p-1"
+                  onPress={() => {
+                    if (router.canGoBack()) {
+                      router.back();
+                    } else {
+                      setShowChooseService(false);
+                    }
+                  }}
+                  className="w-10 h-10 rounded-full bg-white border border-[#D6ECFA] items-center justify-center mr-2.5"
                 >
-                  <Ionicons name="arrow-back" size={22} color="#003B73" />
+                  <Ionicons name="arrow-back" size={20} color="#003B73" />
                 </TouchableOpacity>
                 <Image
                   source={images.logoIcon}
@@ -282,17 +289,29 @@ export default function OnboardingScreen() {
 
               <TouchableOpacity
                 onPress={() => router.push("/(auth)/sign-in?role=customer")}
+                className="px-3.5 py-1.5 rounded-full bg-white border border-[#D6ECFA]"
               >
-                <Ionicons name="search-outline" size={24} color="#4A6F96" />
+                <Text
+                  className="text-[12px] text-[#003B73]"
+                  style={{ fontFamily: "Poppins-SemiBold" }}
+                >
+                  Sign In
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Title */}
+            {/* Title & Subtitle */}
             <Text
-              className="text-[22px] text-[#003B73] mb-3"
+              className="text-[24px] text-[#003B73] mb-1"
               style={{ fontFamily: "Poppins-Bold" }}
             >
               What service do you need?
+            </Text>
+            <Text
+              className="text-[13px] text-[#5B7C99] mb-3"
+              style={{ fontFamily: "Poppins-Regular" }}
+            >
+              Select one or more services to personalize your experience.
             </Text>
 
             {/* Search Input */}
@@ -306,12 +325,18 @@ export default function OnboardingScreen() {
                 className="flex-1 ml-2.5 text-[14px] text-[#003B73] h-full"
                 style={{ fontFamily: "Poppins-Regular" }}
               />
+              {serviceSearch.length > 0 ? (
+                <TouchableOpacity onPress={() => setServiceSearch("")}>
+                  <Ionicons name="close-circle" size={18} color="#8AA8C4" />
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
 
           {/* 3-Column Service Grid + Centered "More" Card */}
           <ScrollView
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.serviceGridScroll}
           >
             <View className="flex-row flex-wrap justify-between">
@@ -323,12 +348,17 @@ export default function OnboardingScreen() {
                     activeOpacity={0.8}
                     onPress={() => toggleService(item.id)}
                     style={[styles.serviceCard, styles.serviceCardShadow]}
-                    className={`mb-3 p-3 rounded-2xl items-center justify-center border ${
+                    className={`mb-3 p-3 rounded-2xl items-center justify-center border relative ${
                       isSelected
                         ? "bg-[#EAF7FF] border-[#00A8E8]"
                         : "bg-white border-[#D8EEFC]"
                     }`}
                   >
+                    {isSelected ? (
+                      <View className="absolute top-2 right-2">
+                        <Ionicons name="checkmark-circle" size={16} color="#00A8E8" />
+                      </View>
+                    ) : null}
                     <View className="w-12 h-12 rounded-full bg-[#E6F7FF] items-center justify-center mb-2">
                       {renderServiceIcon(item)}
                     </View>
@@ -349,12 +379,17 @@ export default function OnboardingScreen() {
                   activeOpacity={0.8}
                   onPress={() => toggleService(moreItem.id)}
                   style={[styles.serviceCard, styles.serviceCardShadow]}
-                  className={`p-3 rounded-2xl items-center justify-center border ${
+                  className={`p-3 rounded-2xl items-center justify-center border relative ${
                     selectedServices.includes(moreItem.id)
                       ? "bg-[#EAF7FF] border-[#00A8E8]"
                       : "bg-white border-[#D8EEFC]"
                   }`}
                 >
+                  {selectedServices.includes(moreItem.id) ? (
+                    <View className="absolute top-2 right-2">
+                      <Ionicons name="checkmark-circle" size={16} color="#00A8E8" />
+                    </View>
+                  ) : null}
                   <View className="w-12 h-12 rounded-full bg-[#E6F7FF] items-center justify-center mb-2">
                     {renderServiceIcon(moreItem)}
                   </View>
@@ -369,33 +404,13 @@ export default function OnboardingScreen() {
             ) : null}
           </ScrollView>
 
-          {/* Bottom Continue CTA & 4th Dot Indicator */}
+          {/* Bottom Continue CTA */}
           <View className="pt-2">
             <Button
               title="Continue"
               onPress={handleCustomerServiceContinue}
-              className="mb-4"
+              className="mb-2"
             />
-
-            <View className="flex-row items-center justify-center">
-              {[0, 1, 2, 3].map((dotIdx) => {
-                const isActive = dotIdx === 3;
-                return (
-                  <TouchableOpacity
-                    key={dotIdx}
-                    onPress={() => {
-                      if (dotIdx < 3) {
-                        setShowChooseService(false);
-                        setActiveIndex(dotIdx);
-                      }
-                    }}
-                    className={`h-2.5 rounded-full mx-1.5 ${
-                      isActive ? "w-7 bg-[#0099DF]" : "w-2.5 bg-[#C7E6FA]"
-                    }`}
-                  />
-                );
-              })}
-            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -407,14 +422,12 @@ export default function OnboardingScreen() {
   // ==========================================================
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Seamless Full-Screen Cityscape & Network Backdrop */}
       <Image
         source={images.onboardingBg}
         style={styles.bgOverlay}
         resizeMode="cover"
       />
 
-      {/* Top Role Switch / Auto-Play Toggle / Skip Bar */}
       <View className="flex-row items-center justify-between px-6 pt-2">
         <TouchableOpacity
           onPress={() => setRole("artisan")}
@@ -474,7 +487,6 @@ export default function OnboardingScreen() {
         ))}
       </Swiper>
 
-      {/* Bottom CTA Button + Animated Auto-Play Pagination Dots */}
       <View className="px-6 pb-6 pt-1">
         <Button
           title={
@@ -488,7 +500,6 @@ export default function OnboardingScreen() {
           className="mb-4"
         />
 
-        {/* 4 Dots: 3 Auto-Playing Welcome Slides + 4th Choose Service Step */}
         <View className="flex-row items-center justify-center">
           {[0, 1, 2, 3].map((dotIdx) => {
             const isActive = activeIndex === dotIdx;
