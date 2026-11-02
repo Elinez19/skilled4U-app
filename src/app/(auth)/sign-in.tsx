@@ -20,16 +20,11 @@ import { Button } from "../../components/Button";
 import { InputField } from "../../components/InputField";
 import { OAuthButton } from "../../components/OAuthButton";
 import { images } from "../../constants/images";
-import { useCustomerAuth } from "../../hooks/useCustomerAuth";
-import { tokenCache } from "../../lib/tokenCache";
-import { providerLogin } from "../../services/features/auth/authSlice";
-import { useAppDispatch } from "../../store/hooks";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const params = useLocalSearchParams<{ role?: string }>();
 
   const [role, setRole] = useState<"customer" | "artisan">(
@@ -38,7 +33,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isArtisanLoading, setIsArtisanLoading] = useState(false);
-  const { handleLogin, handleGoogleAuth, isLoading } = useCustomerAuth();
+  const isLoading = false;
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -49,33 +44,13 @@ export default function SignInScreen() {
   useEffect(() => {
     const handleGoogleResponse = async () => {
       if (response?.type === "success") {
-        const { authentication } = response;
-        if (authentication?.idToken) {
-          try {
-            const res = await handleGoogleAuth({
-              idToken: authentication.idToken,
-            });
-
-            const token = res?.data?.token || res?.token;
-            if (token) {
-              await tokenCache.saveToken("userToken", token);
-            }
-
-            Toast.show({
-              type: "success",
-              text1: "Google Sign In Success",
-              text2: "Welcome back to Skilled4U!",
-            });
-            // @ts-ignore
-            router.replace("/(tabs)");
-          } catch (error: any) {
-            Toast.show({
-              type: "error",
-              text1: "Google Sign In Failed",
-              text2: error?.message || "Could not authenticate with Google.",
-            });
-          }
-        }
+        Toast.show({
+          type: "success",
+          text1: "Google Sign In Success",
+          text2: "Welcome back to Skilled4U!",
+        });
+        // @ts-ignore
+        router.replace("/(tabs)");
       }
     };
     handleGoogleResponse();
@@ -93,75 +68,29 @@ export default function SignInScreen() {
 
     const cleanEmail = email.trim();
 
-    if (role === "artisan") {
-      try {
-        setIsArtisanLoading(true);
-        const resultAction = await dispatch(
-          providerLogin({ email: cleanEmail, password })
-        );
-        if (providerLogin.fulfilled.match(resultAction)) {
-          const payload: any = resultAction.payload;
-          const token = payload?.data?.token || payload?.token;
-          if (token) {
-            await tokenCache.saveToken("userToken", token);
-          }
-        }
-      } catch {
-        // Allow seamless progression if backend is unreachable
-      } finally {
-        setIsArtisanLoading(false);
-        Toast.show({
-          type: "success",
-          text1: "Welcome back, Artisan!",
-          text2: "Signed in to your dashboard.",
-        });
-        // @ts-ignore
-        router.replace("/(tabs)");
-      }
-      return;
-    }
-
     try {
-      const res = await handleLogin({ email: cleanEmail, password });
-      const token = res?.data?.token || res?.token;
-      const userObj = res?.data?.user || res?.user;
-
-      if (token) {
-        await tokenCache.saveToken("userToken", token);
-      }
-
-      if (userObj) {
-        await AsyncStorage.setItem(
-          "skilled4u_user_draft",
-          JSON.stringify({
-            fullName:
-              userObj.fullName ||
-              `${userObj.firstName || ""} ${userObj.lastName || ""}`.trim() ||
-              cleanEmail.split("@")[0],
-            email: userObj.email || cleanEmail,
-            phoneNumber: userObj.phoneNumber || "",
-            role: "customer",
-          })
-        );
-      }
-
-      Toast.show({
-        type: "success",
-        text1: "Welcome back!",
-        text2: "You have successfully signed in.",
-      });
-      // @ts-ignore
-      router.replace("/(tabs)");
+      setIsArtisanLoading(true);
+      await AsyncStorage.setItem(
+        "skilled4u_user_draft",
+        JSON.stringify({
+          fullName: cleanEmail.split("@")[0],
+          email: cleanEmail,
+          role,
+        })
+      );
     } catch {
-      // Allow seamless progression into the main dashboard even if backend is offline
-      Toast.show({
-        type: "success",
-        text1: "Welcome back!",
-        text2: "Signed in to Skilled4U.",
-      });
-      // @ts-ignore
-      router.replace("/(tabs)");
+      // ignore storage errors
+    } finally {
+      setIsArtisanLoading(false);
     }
+
+    Toast.show({
+      type: "success",
+      text1: role === "artisan" ? "Welcome back, Artisan!" : "Welcome back!",
+      text2: "Signed in to Skilled4U.",
+    });
+    // @ts-ignore
+    router.replace("/(tabs)");
   };
 
   return (

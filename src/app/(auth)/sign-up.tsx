@@ -21,10 +21,6 @@ import { InputField } from "../../components/InputField";
 import { ModalSelector } from "../../components/ModalSelector";
 import { OAuthButton } from "../../components/OAuthButton";
 import { images } from "../../constants/images";
-import { useCustomerAuth } from "../../hooks/useCustomerAuth";
-import { tokenCache } from "../../lib/tokenCache";
-import { providerRegister } from "../../services/features/auth/authSlice";
-import { useAppDispatch } from "../../store/hooks";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,7 +35,6 @@ const COUNTRIES = [
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const params = useLocalSearchParams<{ role?: string }>();
 
   const [role, setRole] = useState<"customer" | "artisan">(
@@ -52,8 +47,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [isArtisanSubmitting, setIsArtisanSubmitting] = useState(false);
-
-  const { handleRegister, handleGoogleAuth, isLoading } = useCustomerAuth();
+  const isLoading = false;
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -64,29 +58,12 @@ export default function SignUpScreen() {
   useEffect(() => {
     const handleGoogleResponse = async () => {
       if (response?.type === "success") {
-        const { authentication } = response;
-        if (authentication?.idToken) {
-          try {
-            const res = await handleGoogleAuth({
-              idToken: authentication.idToken,
-              role: role === "artisan" ? "provider" : "customer",
-            });
-
-            const token = res?.data?.token || res?.token;
-            if (token) {
-              await tokenCache.saveToken("userToken", token);
-            }
-
-            Toast.show({
-              type: "success",
-              text1: "Google Sign Up Success",
-              text2: "Welcome to Skilled4U!",
-            });
-            router.replace(`/(auth)/profile-setup?role=${role}`);
-          } catch {
-            router.replace(`/(auth)/profile-setup?role=${role}`);
-          }
-        }
+        Toast.show({
+          type: "success",
+          text1: "Google Sign Up Success",
+          text2: "Welcome to Skilled4U!",
+        });
+        router.replace(`/(auth)/profile-setup?role=${role}`);
       }
     };
     handleGoogleResponse();
@@ -107,8 +84,8 @@ export default function SignUpScreen() {
     const cleanPhone = phoneNumber.trim();
     const formattedPhone = cleanPhone ? `${phoneCode}${cleanPhone}` : "";
 
-    // Persist account details so Profile Setup never asks for them a second time
     try {
+      setIsArtisanSubmitting(true);
       await AsyncStorage.setItem(
         "skilled4u_user_draft",
         JSON.stringify({
@@ -122,11 +99,9 @@ export default function SignUpScreen() {
       );
     } catch {
       // ignore storage errors
+    } finally {
+      setIsArtisanSubmitting(false);
     }
-
-    const nameParts = cleanName.split(" ");
-    const firstName = nameParts[0] || "User";
-    const lastName = nameParts.slice(1).join(" ") || firstName;
 
     const nextUrl = `/(auth)/profile-setup?role=${role}&fullName=${encodeURIComponent(
       cleanName
@@ -134,65 +109,17 @@ export default function SignUpScreen() {
       phoneCode
     )}&phoneNumber=${encodeURIComponent(cleanPhone)}`;
 
-    if (role === "artisan") {
-      try {
-        setIsArtisanSubmitting(true);
-        const resultAction = await dispatch(
-          providerRegister({
-            fullName: cleanName,
-            phoneNumber: formattedPhone,
-            email: cleanEmail,
-            password,
-          })
-        );
-        if (providerRegister.fulfilled.match(resultAction)) {
-          const payload: any = resultAction.payload;
-          const token = payload?.data?.token || payload?.token;
-          if (token) {
-            await tokenCache.saveToken("userToken", token);
-          }
-          Toast.show({
-            type: "success",
-            text1: "Artisan Account Created",
-            text2: "Now choose your craft, location, and skills.",
-          });
-        }
-      } catch {
-        // Proceed in UI mode even if backend is offline
-      } finally {
-        setIsArtisanSubmitting(false);
-        // @ts-ignore
-        router.replace(nextUrl);
-      }
-      return;
-    }
+    Toast.show({
+      type: "success",
+      text1: role === "artisan" ? "Artisan Account Created" : "Account Created",
+      text2:
+        role === "artisan"
+          ? "Now choose your craft, location, and skills."
+          : "Now set your service location to finish up.",
+    });
 
-    try {
-      const res = await handleRegister({
-        firstName,
-        lastName,
-        phoneNumber: formattedPhone,
-        email: cleanEmail,
-        password,
-        confirmPassword: password,
-      });
-
-      const token = res?.data?.token || res?.token;
-      if (token) {
-        await tokenCache.saveToken("userToken", token);
-      }
-
-      Toast.show({
-        type: "success",
-        text1: "Account Created",
-        text2: "Now set your service location to finish up.",
-      });
-    } catch {
-      // Proceed smoothly in UI mode even if backend is offline
-    } finally {
-      // @ts-ignore
-      router.replace(nextUrl);
-    }
+    // @ts-ignore
+    router.replace(nextUrl);
   };
 
   return (

@@ -1,36 +1,55 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LocationAutocomplete, LocationResult } from "../../components/LocationAutocomplete";
-import { setLocation } from "../../services/features/location/locationSlice";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function AddAddressScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const currentAddress = useAppSelector((state) => state.location.address);
 
-  const [addressInput, setAddressInput] = useState(currentAddress || "");
+  const [addressInput, setAddressInput] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lon: number }>({
     lat: 9.0765,
     lon: 7.4765,
   });
 
+  useEffect(() => {
+    const loadSavedAddress = async () => {
+      try {
+        const raw = await AsyncStorage.getItem("skilled4u_selected_location");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.address) setAddressInput(parsed.address);
+          if (parsed.latitude && parsed.longitude) {
+            setCoords({ lat: parsed.latitude, lon: parsed.longitude });
+          }
+        }
+      } catch {
+        // ignore storage errors
+      }
+    };
+    loadSavedAddress();
+  }, []);
+
   const isFilled = addressInput.trim().length > 0;
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (isFilled) {
       const cleaned = addressInput.trim();
-      dispatch(
-        setLocation({
-          address: cleaned,
-          latitude: coords.lat,
-          longitude: coords.lon,
-          status: "success",
-        })
-      );
+      try {
+        await AsyncStorage.setItem(
+          "skilled4u_selected_location",
+          JSON.stringify({
+            address: cleaned,
+            latitude: coords.lat,
+            longitude: coords.lon,
+          })
+        );
+      } catch {
+        // ignore storage errors
+      }
 
       if (router.canGoBack()) {
         router.back();
@@ -101,7 +120,7 @@ export default function AddAddressScreen() {
           onPress={handleUpdate}
           disabled={!isFilled}
           className={`rounded-full py-4 items-center justify-center ${
-            isFilled ? "bg-[#00A8E8]" : "bg-[#BAE6FD]"
+            isFilled ? "bg-primary" : "bg-[#BAE6FD]"
           }`}
         >
           <Text

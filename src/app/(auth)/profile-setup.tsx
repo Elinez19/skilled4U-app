@@ -27,10 +27,6 @@ import {
   OnboardingServiceItem,
   SERVICE_RADIUS_OPTIONS,
 } from "../../data/categories";
-import { useCustomerAuth } from "../../hooks/useCustomerAuth";
-import { setupProfile } from "../../services/features/auth/authSlice";
-import { setLocation } from "../../services/features/location/locationSlice";
-import { useAppDispatch } from "../../store/hooks";
 
 const HEAR_ABOUT_OPTIONS = [
   { label: "Google", value: "Google" },
@@ -43,7 +39,6 @@ const HEAR_ABOUT_OPTIONS = [
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const params = useLocalSearchParams<{
     role?: string;
     step?: string;
@@ -52,7 +47,7 @@ export default function ProfileSetupScreen() {
     phoneCode?: string;
     phoneNumber?: string;
   }>();
-  const { handleProfileSetup, isLoading } = useCustomerAuth();
+  const isLoading = false;
 
   const [mode, setMode] = useState<"artisan" | "customer">(
     params.role === "artisan" ? "artisan" : "customer"
@@ -160,15 +155,19 @@ export default function ProfileSetupScreen() {
     setPortfolioPhotos((prev) => prev.filter((item) => item !== uri));
   };
 
-  const syncLocationToStore = (finalAddress: string) => {
-    dispatch(
-      setLocation({
-        address: finalAddress || "Wuse 2, Abuja",
-        latitude: coords.lat,
-        longitude: coords.lon,
-        status: "success",
-      })
-    );
+  const saveLocationLocally = async (finalAddress: string) => {
+    try {
+      await AsyncStorage.setItem(
+        "skilled4u_selected_location",
+        JSON.stringify({
+          address: finalAddress || "Wuse 2, Abuja",
+          latitude: coords.lat,
+          longitude: coords.lon,
+        })
+      );
+    } catch {
+      // ignore storage errors
+    }
   };
 
   const handleArtisanNext = async () => {
@@ -183,7 +182,7 @@ export default function ProfileSetupScreen() {
 
     if (artisanStep < 3) {
       if (artisanStep === 2) {
-        syncLocationToStore(address.trim());
+        await saveLocationLocally(address.trim());
       }
       setArtisanStep((prev) => prev + 1);
       return;
@@ -191,12 +190,13 @@ export default function ProfileSetupScreen() {
 
     if (artisanStep === 3) {
       const finalAddress = address.trim() || "Wuse 2, Abuja";
-      syncLocationToStore(finalAddress);
+      setIsSubmittingArtisan(true);
+      await saveLocationLocally(finalAddress);
 
       try {
-        setIsSubmittingArtisan(true);
-        await dispatch(
-          setupProfile({
+        await AsyncStorage.setItem(
+          "skilled4u_user_draft",
+          JSON.stringify({
             craftCategory: selectedCraft,
             fullName: fullName || "Artisan Pro",
             phoneNumber: phoneNumber ? `${phoneCode}${phoneNumber}` : "",
@@ -206,10 +206,11 @@ export default function ProfileSetupScreen() {
             skills: selectedSkills,
             experienceLevel: experienceLevel || "3 - 5 years",
             portfolioPhotos,
+            role: "artisan",
           })
         );
       } catch {
-        // Proceed to completion screen even if backend is offline
+        // ignore storage errors
       } finally {
         setIsSubmittingArtisan(false);
         setArtisanStep(4);
@@ -243,7 +244,7 @@ export default function ProfileSetupScreen() {
     }
 
     const finalAddress = address.trim();
-    syncLocationToStore(finalAddress);
+    await saveLocationLocally(finalAddress);
 
     try {
       await AsyncStorage.setItem(
@@ -263,27 +264,13 @@ export default function ProfileSetupScreen() {
       // ignore storage errors
     }
 
-    try {
-      const payload = {
-        fullName: fullName || "Skilled4U Client",
-        email,
-        phoneNumber: phoneNumber ? `${phoneCode}${phoneNumber}` : "",
-        address: finalAddress,
-        hearAboutUs: hearAbout || "Google",
-      };
-
-      await handleProfileSetup(payload);
-    } catch {
-      // Allow seamless completion into the main app even when backend is offline
-    } finally {
-      Toast.show({
-        type: "success",
-        text1: "Profile Ready!",
-        text2: `Showing artisans near ${finalAddress.split(",")[0]}.`,
-      });
-      // @ts-ignore
-      router.replace("/(tabs)");
-    }
+    Toast.show({
+      type: "success",
+      text1: "Profile Ready!",
+      text2: `Showing artisans near ${finalAddress.split(",")[0]}.`,
+    });
+    // @ts-ignore
+    router.replace("/(tabs)");
   };
 
   const renderCategoryIcon = (item: OnboardingServiceItem) => {

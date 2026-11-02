@@ -1,5 +1,6 @@
-import { router } from "expo-router";
-import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,27 +17,43 @@ import { ServiceSelectionModal } from "../../components/home/ServiceSelectionMod
 import { SpecialPromos } from "../../components/home/SpecialPromos";
 import { TrendingProducts } from "../../components/home/TrendingProducts";
 import { Category, POPULAR_CATEGORIES } from "../../data/categories";
-import { fetchUserLocation } from "../../services/features/location/locationSlice";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export default function TabsIndex() {
-  const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);
-  const [isModalVisible, setIsModalVisible] = React.useState(false);
-  const [isLocationModalVisible, setIsLocationModalVisible] = React.useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [savedAddress, setSavedAddress] = useState("Wuse 2, Abuja");
 
-  const dispatch = useAppDispatch();
-  const { address, status } = useAppSelector((state) => state.location);
-
-  React.useEffect(() => {
-    // Only prompt if location wasn't already configured during Profile Setup
-    if (status === "idle" && !address) {
-      setIsLocationModalVisible(true);
-    }
-  }, [status, address]);
+  useFocusEffect(
+    useCallback(() => {
+      const loadSavedLocation = async () => {
+        try {
+          const raw = await AsyncStorage.getItem("skilled4u_selected_location");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.address) {
+              setSavedAddress(parsed.address);
+              return;
+            }
+          }
+          const draftRaw = await AsyncStorage.getItem("skilled4u_user_draft");
+          if (draftRaw) {
+            const draft = JSON.parse(draftRaw);
+            if (draft.address) {
+              setSavedAddress(draft.address);
+            }
+          }
+        } catch {
+          // ignore storage errors
+        }
+      };
+      loadSavedLocation();
+    }, [])
+  );
 
   const handleGrantLocation = () => {
     setIsLocationModalVisible(false);
-    dispatch(fetchUserLocation());
+    router.push("/address-book/add");
   };
 
   const handleSkipLocation = () => {
@@ -55,11 +72,7 @@ export default function TabsIndex() {
         showsVerticalScrollIndicator={false}
       >
         <HomeHeader
-          locationTitle={
-            status === "loading"
-              ? "Fetching location..."
-              : address || "Wuse 2, Abuja"
-          }
+          locationTitle={savedAddress}
           onEditLocation={() => router.push("/address-book/add")}
           onNotificationPress={() => console.log("Notifications")}
         />
