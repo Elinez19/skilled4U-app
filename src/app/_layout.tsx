@@ -103,6 +103,10 @@ export default function RootLayout() {
     outputRange: ["12%", "100%"],
   });
 
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <Provider store={store}>
       <StatusBar style="dark" />
@@ -156,23 +160,15 @@ export default function RootLayout() {
               </View>
 
               {/* Brand Name Wordmark */}
-              <View className="flex-row items-center justify-center mb-1.5">
-                <Text
-                  className="text-[36px] text-[#003B73] tracking-tight"
-                  style={{ fontFamily: "Poppins-Bold", lineHeight: 44 }}
-                >
-                  Skilled
-                </Text>
-                <Text
-                  className="text-[36px] text-[#00A8E8] tracking-tight"
-                  style={{ fontFamily: "Poppins-Bold", lineHeight: 44 }}
-                >
-                  4U
-                </Text>
-              </View>
+              <Text
+                className="w-full text-center text-[36px] text-[#003B73] mb-1.5"
+                style={{ fontFamily: "Poppins-Bold", lineHeight: 44 }}
+              >
+                Skilled<Text className="text-[#00A8E8]">4U</Text>
+              </Text>
 
               <Text
-                className="text-[14px] text-[#4A6F96] text-center mb-8"
+                className="w-full text-[14px] text-[#4A6F96] text-center mb-8"
                 style={{ fontFamily: "Poppins-Medium" }}
               >
                 Skilled Hands. Closer to You.

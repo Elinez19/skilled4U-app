@@ -155,11 +155,6 @@ export default function OnboardingScreen() {
   if (role === "artisan") {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Image
-          source={images.onboardingBg}
-          style={styles.bgOverlay}
-          resizeMode="cover"
-        />
         <View className="flex-1 justify-between pb-6">
           {/* Top Role Switch / Back Bar */}
           <View className="flex-row items-center justify-between px-6 pt-2">
@@ -181,10 +176,10 @@ export default function OnboardingScreen() {
               className="px-3.5 py-1.5 rounded-full bg-[#E6F7FF] border border-[#B8E2F8]"
             >
               <Text
-                className="text-[12px] text-[#003B73]"
+                className="text-[12px] text-[#003B73] px-1"
                 style={{ fontFamily: "Poppins-Medium" }}
               >
-                Switch to Client
+                Switch{"\u00A0"}to{"\u00A0"}Client
               </Text>
             </TouchableOpacity>
           </View>
@@ -195,7 +190,6 @@ export default function OnboardingScreen() {
               "Join Skilled4U and get matched with\nnearby clients who need your expertise."
             }
             imageSource={images.onboardingHeroArtisan}
-            badgeText="Earn More • Flexible Schedule"
             align="left"
             showBrandHeader={true}
             brandSubtitle="Skilled Hands. Closer to You."
@@ -219,10 +213,10 @@ export default function OnboardingScreen() {
                 onPress={() => router.push("/(auth)/sign-in?role=artisan")}
               >
                 <Text
-                  className="text-[14px] text-[#00A8E8]"
+                  className="text-[14px] text-[#00A8E8] px-1"
                   style={{ fontFamily: "Poppins-SemiBold" }}
                 >
-                  Log In
+                  Log{"\u00A0"}In
                 </Text>
               </TouchableOpacity>
             </View>
@@ -253,7 +247,7 @@ export default function OnboardingScreen() {
           {/* Header Bar */}
           <View>
             <View className="flex-row items-center justify-between mb-4">
-              <View className="flex-row items-center">
+              <View className="flex-row items-center flex-1 mr-2">
                 <TouchableOpacity
                   onPress={() => {
                     if (router.canGoBack()) {
@@ -271,44 +265,36 @@ export default function OnboardingScreen() {
                   style={styles.smallLogoIcon}
                   resizeMode="contain"
                 />
-                <View className="flex-row items-center ml-1">
-                  <Text
-                    className="text-[20px] text-[#003B73]"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    Skilled
-                  </Text>
-                  <Text
-                    className="text-[20px] text-[#00A8E8]"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    4U
-                  </Text>
-                </View>
+                <Text
+                  className="ml-1 text-[20px] text-[#003B73] pr-1"
+                  style={{ fontFamily: "Poppins-Bold" }}
+                >
+                  Skilled<Text className="text-[#00A8E8]">4U</Text>
+                </Text>
               </View>
 
               <TouchableOpacity
                 onPress={() => router.push("/(auth)/sign-in?role=customer")}
-                className="px-3.5 py-1.5 rounded-full bg-white border border-[#D6ECFA]"
+                className="px-3.5 py-1.5 rounded-full bg-white border border-[#D6ECFA] shrink-0"
               >
                 <Text
-                  className="text-[12px] text-[#003B73]"
+                  className="text-[12px] text-[#003B73] px-1"
                   style={{ fontFamily: "Poppins-SemiBold" }}
                 >
-                  Sign In
+                  Sign{"\u00A0"}In
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Title & Subtitle */}
             <Text
-              className="text-[24px] text-[#003B73] mb-1"
+              className="w-full text-[24px] text-[#003B73] mb-1"
               style={{ fontFamily: "Poppins-Bold" }}
             >
               What service do you need?
             </Text>
             <Text
-              className="text-[13px] text-[#5B7C99] mb-3"
+              className="w-full text-[13px] text-[#5B7C99] mb-3"
               style={{ fontFamily: "Poppins-Regular" }}
             >
               Select one or more services to personalize your experience.
@@ -348,7 +334,7 @@ export default function OnboardingScreen() {
                     activeOpacity={0.8}
                     onPress={() => toggleService(item.id)}
                     style={[styles.serviceCard, styles.serviceCardShadow]}
-                    className={`mb-3 p-3 rounded-2xl items-center justify-center border relative ${
+                    className={`mb-3 p-2.5 rounded-2xl items-center justify-center border relative ${
                       isSelected
                         ? "bg-[#EAF7FF] border-[#00A8E8]"
                         : "bg-white border-[#D8EEFC]"
@@ -363,7 +349,7 @@ export default function OnboardingScreen() {
                       {renderServiceIcon(item)}
                     </View>
                     <Text
-                      className="text-[12px] text-[#003B73] text-center"
+                      className="w-full text-[11.5px] text-[#003B73] text-center"
                       style={{ fontFamily: "Poppins-SemiBold", lineHeight: 16 }}
                     >
                       {item.title}
@@ -379,7 +365,7 @@ export default function OnboardingScreen() {
                   activeOpacity={0.8}
                   onPress={() => toggleService(moreItem.id)}
                   style={[styles.serviceCard, styles.serviceCardShadow]}
-                  className={`p-3 rounded-2xl items-center justify-center border relative ${
+                  className={`p-2.5 rounded-2xl items-center justify-center border relative ${
                     selectedServices.includes(moreItem.id)
                       ? "bg-[#EAF7FF] border-[#00A8E8]"
                       : "bg-white border-[#D8EEFC]"
@@ -394,7 +380,7 @@ export default function OnboardingScreen() {
                     {renderServiceIcon(moreItem)}
                   </View>
                   <Text
-                    className="text-[12px] text-[#003B73] text-center"
+                    className="w-full text-[11.5px] text-[#003B73] text-center"
                     style={{ fontFamily: "Poppins-SemiBold" }}
                   >
                     {moreItem.title}
@@ -422,30 +408,24 @@ export default function OnboardingScreen() {
   // ==========================================================
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Image
-        source={images.onboardingBg}
-        style={styles.bgOverlay}
-        resizeMode="cover"
-      />
-
       <View className="flex-row items-center justify-between px-6 pt-2">
         <TouchableOpacity
           onPress={() => setRole("artisan")}
-          className="px-3.5 py-1.5 rounded-full bg-white/95 border border-[#D6ECFA] flex-row items-center"
+          className="px-3.5 py-1.5 rounded-full bg-[#F8FBFF] border border-[#D6ECFA] flex-row items-center"
         >
           <Ionicons name="construct-outline" size={13} color="#00A8E8" />
           <Text
-            className="text-[12px] text-[#003B73] ml-1.5"
+            className="text-[12px] text-[#003B73] ml-1.5 pr-1"
             style={{ fontFamily: "Poppins-Medium" }}
           >
-            Join as Artisan
+            Join{"\u00A0"}as{"\u00A0"}Artisan
           </Text>
         </TouchableOpacity>
 
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => setIsAutoPlayPaused((prev) => !prev)}
-            className="w-8 h-8 rounded-full bg-white/90 border border-[#D6ECFA] items-center justify-center mr-2.5"
+            className="w-8 h-8 rounded-full bg-[#F8FBFF] border border-[#D6ECFA] items-center justify-center mr-2.5"
           >
             <Ionicons
               name={isAutoPlayPaused ? "play" : "pause"}
@@ -459,7 +439,7 @@ export default function OnboardingScreen() {
             className="px-2 py-1"
           >
             <Text
-              className="text-[13px] text-[#5B7C99]"
+              className="text-[13px] text-[#5B7C99] px-1"
               style={{ fontFamily: "Poppins-SemiBold" }}
             >
               Skip
@@ -475,14 +455,13 @@ export default function OnboardingScreen() {
         showsPagination={false}
         scrollEventThrottle={16}
       >
-        {CUSTOMER_SLIDES.map((slide) => (
+        {CUSTOMER_SLIDES.map((slide, idx) => (
           <OnboardingSlide
             key={slide.id}
-            stepLabel={slide.stepLabel}
             heading={slide.heading}
             description={slide.description}
             imageSource={slide.imageSource}
-            badgeText={slide.badgeText}
+            isActive={activeIndex === idx}
           />
         ))}
       </Swiper>
@@ -538,7 +517,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4FAFF",
+    backgroundColor: "#FFFFFF",
   },
   bgOverlay: {
     position: "absolute",

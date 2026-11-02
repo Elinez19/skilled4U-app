@@ -47,7 +47,7 @@ export function Button({
   const textTextClasses = isText ? "text-[#5B7C99]" : "";
 
   const labelClasses = [
-    "text-[16px] tracking-wide",
+    "w-full text-center text-[16px] px-1",
     textPrimaryClasses,
     textSecondaryClasses,
     textOutlineClasses,

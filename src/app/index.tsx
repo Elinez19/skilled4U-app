@@ -2,9 +2,11 @@ import { Button } from "@/components/Button";
 import { images } from "@/constants/images";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    Animated,
     Dimensions,
+    Easing,
     Image,
     Platform,
     ScrollView,
@@ -51,152 +53,143 @@ const TRUST_FEATURES = [
 export default function AppLauncherScreen() {
   const router = useRouter();
   const [heroIndex, setHeroIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Auto-play the hero showcase slides every 3.8s
+  const transitionToSlide = useCallback(
+    (nextIndex: number) => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 240,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.97,
+          duration: 240,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setHeroIndex(nextIndex);
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 380,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 380,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+    },
+    [fadeAnim, scaleAnim]
+  );
+
+  // Smoothly crossfade the hero showcase slides every 4.2s
   useEffect(() => {
     const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 3800);
+      transitionToSlide((heroIndex + 1) % HERO_SLIDES.length);
+    }, 4200);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroIndex, transitionToSlide]);
 
   const currentHero = HERO_SLIDES[heroIndex];
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Image
-        source={images.onboardingBg}
-        style={styles.bgOverlay}
-        resizeMode="cover"
-      />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Top Brand Header with Custom Skilled4U Logo Icon */}
-        <View className="flex-row items-center justify-between pt-2 mb-4">
-          <View className="flex-row items-center">
+        <View className="flex-row items-center justify-between pt-2 mb-3">
+          <View className="flex-row items-center flex-1 mr-2">
             <Image
               source={images.logoIcon}
               style={styles.brandLogo}
               resizeMode="contain"
             />
-            <View className="ml-1.5">
-              <View className="flex-row items-center">
-                <Text
-                  className="text-[23px] text-[#003B73]"
-                  style={{ fontFamily: "Poppins-Bold", lineHeight: 27 }}
-                >
-                  Skilled
-                </Text>
-                <Text
-                  className="text-[23px] text-[#00A8E8]"
-                  style={{ fontFamily: "Poppins-Bold", lineHeight: 27 }}
-                >
-                  4U
-                </Text>
-              </View>
+            <View className="ml-1.5 flex-1">
               <Text
-                className="text-[11px] text-[#5B7C99]"
-                style={{ fontFamily: "Poppins-Medium" }}
+                className="w-full text-[23px] text-[#003B73]"
+                style={{ fontFamily: "Poppins-Bold", lineHeight: 28 }}
+              >
+                Skilled<Text className="text-[#00A8E8]">4U</Text>
+              </Text>
+              <Text
+                className="w-full text-[11px] text-[#5B7C99]"
+                style={{ fontFamily: "Poppins-Medium", lineHeight: 15 }}
               >
                 Skilled Hands. Closer to You.
               </Text>
             </View>
           </View>
 
-          <View className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1.5 rounded-full">
+          <View className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1.5 rounded-full shrink-0">
             <Ionicons name="shield-checkmark" size={14} color="#00A8E8" />
             <Text
-              className="text-[11px] text-[#003B73] ml-1"
+              className="text-[11px] text-[#003B73] ml-1 pr-1"
               style={{ fontFamily: "Poppins-SemiBold" }}
             >
-              Vetted Pros
+              Vetted{"\u00A0"}Pros
             </Text>
           </View>
         </View>
 
-        {/* Auto-Playing Hero Visual Banner */}
-        <View
-          style={[styles.cardShadow, { height: width * 0.72 }]}
-          className="w-full rounded-3xl bg-[#E6F5FF] border border-white/95 overflow-hidden mb-5 relative items-center justify-center"
-        >
-          <Image
-            source={currentHero.image}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-
-          {/* Floating Verified Pill */}
-          <View
-            style={styles.pillShadow}
-            className="absolute top-3 right-3 flex-row items-center bg-white/95 px-3 py-1.5 rounded-full border border-[#D6ECFA]"
+        {/* Minimalist, Background-Free Hero Image with Smooth Crossfade */}
+        <View className="w-full items-center justify-center mb-3">
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+              width: width * 0.86,
+              height: width * 0.65,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <Ionicons name="checkmark-circle" size={15} color="#00A8E8" />
-            <Text
-              className="text-[11px] text-[#003B73] ml-1"
-              style={{ fontFamily: "Poppins-SemiBold" }}
-            >
-              {currentHero.pill}
-            </Text>
-          </View>
+            <Image
+              source={currentHero.image}
+              style={{ width: width * 0.86, height: width * 0.65 }}
+              resizeMode="contain"
+            />
+          </Animated.View>
 
-          {/* Slide Dots on Top-Left */}
-          <View className="absolute top-3.5 left-3.5 flex-row items-center bg-white/90 px-2.5 py-1.5 rounded-full border border-[#D6ECFA]">
+          {/* Minimal Slide Dots Below Image (No Overlays on Image) */}
+          <View className="flex-row items-center justify-center mt-1.5">
             {HERO_SLIDES.map((s, idx) => (
               <TouchableOpacity
                 key={s.id}
-                onPress={() => setHeroIndex(idx)}
-                className={`h-2 rounded-full mx-0.5 ${
-                  idx === heroIndex ? "w-5 bg-[#00A8E8]" : "w-2 bg-[#BEE3F8]"
+                onPress={() => {
+                  if (idx !== heroIndex) {
+                    transitionToSlide(idx);
+                  }
+                }}
+                className={`h-2 rounded-full mx-1 ${
+                  idx === heroIndex ? "w-5 bg-[#00A8E8]" : "w-2 bg-[#D6ECFA]"
                 }`}
               />
             ))}
           </View>
-
-          {/* Bottom Frosted Social Proof Strip */}
-          <View className="absolute bottom-3 left-3 right-3 bg-white/95 rounded-2xl px-3.5 py-2.5 flex-row items-center justify-between border border-[#D6ECFA]">
-            <View className="flex-row items-center flex-1">
-              <View className="w-8 h-8 rounded-full bg-[#E6F7FF] items-center justify-center mr-2.5">
-                <Ionicons name="flash" size={16} color="#00A8E8" />
-              </View>
-              <View className="flex-1">
-                <Text
-                  className="text-[12px] text-[#003B73]"
-                  style={{ fontFamily: "Poppins-SemiBold" }}
-                >
-                  {currentHero.title}
-                </Text>
-                <Text
-                  className="text-[11px] text-[#5B7C99]"
-                  style={{ fontFamily: "Poppins-Regular" }}
-                >
-                  {currentHero.subtitle}
-                </Text>
-              </View>
-            </View>
-            <View className="bg-[#E8FBF2] px-2.5 py-1 rounded-full">
-              <Text
-                className="text-[10px] text-[#10B981]"
-                style={{ fontFamily: "Poppins-SemiBold" }}
-              >
-                ● Live Now
-              </Text>
-            </View>
-          </View>
         </View>
 
         {/* Main Value Proposition */}
-        <View className="items-center mb-5">
+        <View className="w-full items-center mb-5">
           <Text
-            className="text-[28px] text-[#003B73] text-center mb-2"
-            style={{ fontFamily: "Poppins-Bold", lineHeight: 35 }}
+            className="w-full text-[28px] text-[#003B73] text-center mb-2"
+            style={{ fontFamily: "Poppins-Bold", lineHeight: 36 }}
           >
             Skilled Hands.{"\n"}Closer to You.
           </Text>
           <Text
-            className="text-[14px] text-[#5B7C99] text-center px-2"
+            className="w-full text-[14px] text-[#5B7C99] text-center px-1"
             style={{ fontFamily: "Poppins-Regular", lineHeight: 21 }}
           >
             Connect with vetted local artisans on Skilled4U for fast, reliable home and business services.
@@ -204,14 +197,14 @@ export default function AppLauncherScreen() {
         </View>
 
         {/* 4 Feature Badges matching Design System */}
-        <View className="flex-row justify-between mb-6 bg-white/95 p-3 rounded-2xl border border-[#D6ECFA]">
+        <View className="flex-row justify-between mb-6 bg-white/95 px-1.5 py-3 rounded-2xl border border-[#D6ECFA]">
           {TRUST_FEATURES.map((item) => (
-            <View key={item.id} className="items-center flex-1">
+            <View key={item.id} className="items-center flex-1 px-0.5">
               <View className="w-10 h-10 rounded-full bg-[#E6F7FF] items-center justify-center mb-1.5">
                 <Ionicons name={item.icon} size={19} color="#00A8E8" />
               </View>
               <Text
-                className="text-[11px] text-[#003B73] text-center"
+                className="w-full text-[10.5px] text-[#003B73] text-center"
                 style={{ fontFamily: "Poppins-Medium", lineHeight: 14 }}
               >
                 {item.label}
@@ -237,15 +230,15 @@ export default function AppLauncherScreen() {
           <View className="w-11 h-11 rounded-full bg-[#E6F7FF] items-center justify-center mr-3">
             <MaterialCommunityIcons name="briefcase-check-outline" size={22} color="#00A8E8" />
           </View>
-          <View className="flex-1">
+          <View className="flex-1 pr-1">
             <Text
-              className="text-[14px] text-[#003B73]"
+              className="w-full text-[14px] text-[#003B73]"
               style={{ fontFamily: "Poppins-SemiBold" }}
             >
               Are you a Skilled Artisan?
             </Text>
             <Text
-              className="text-[12px] text-[#5B7C99]"
+              className="w-full text-[12px] text-[#5B7C99]"
               style={{ fontFamily: "Poppins-Regular" }}
             >
               Turn your skills into income • Join Skilled4U
@@ -266,10 +259,10 @@ export default function AppLauncherScreen() {
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>
             <Text
-              className="text-[14px] text-[#00A8E8]"
+              className="text-[14px] text-[#00A8E8] px-1"
               style={{ fontFamily: "Poppins-SemiBold" }}
             >
-              Log In
+              Log{"\u00A0"}In
             </Text>
           </TouchableOpacity>
         </View>
@@ -281,7 +274,7 @@ export default function AppLauncherScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4FAFF",
+    backgroundColor: "#FFFFFF",
   },
   bgOverlay: {
     position: "absolute",

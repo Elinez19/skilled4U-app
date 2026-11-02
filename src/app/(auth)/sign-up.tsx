@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Google from "expo-auth-session/providers/google";
+import { useAuthRequest } from "expo-auth-session";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
@@ -23,6 +23,13 @@ import { OAuthButton } from "../../components/OAuthButton";
 import { images } from "../../constants/images";
 
 WebBrowser.maybeCompleteAuthSession();
+
+const GOOGLE_DISCOVERY = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint: "https://oauth2.googleapis.com/token",
+  revocationEndpoint: "https://oauth2.googleapis.com/revoke",
+  userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
+};
 
 const COUNTRIES = [
   { label: "Nigeria", value: "NG", subLabel: "+234" },
@@ -49,11 +56,25 @@ export default function SignUpScreen() {
   const [isArtisanSubmitting, setIsArtisanSubmitting] = useState(false);
   const isLoading = false;
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    redirectUri: "https://auth.expo.io/@elinez/skilled4u-app",
-  });
+  const googleClientId =
+    Platform.OS === "android"
+      ? process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
+        process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+        ""
+      : process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "";
+
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId: googleClientId,
+      scopes: [
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ],
+      redirectUri: "https://auth.expo.io/@elinez/skilled4u-app",
+    },
+    GOOGLE_DISCOVERY
+  );
 
   useEffect(() => {
     const handleGoogleResponse = async () => {
