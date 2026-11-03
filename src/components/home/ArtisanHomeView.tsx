@@ -3,18 +3,21 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
-  Modal,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { images } from "../../constants/images";
 import { ARTISAN_JOB_REQUESTS, ArtisanJobRequest } from "../../data/artisans";
+import {
+  AvailableJobsModal,
+  CustomQuoteModal,
+  JobLeadDetailsModal,
+  WithdrawFundsModal,
+} from "../modals";
 
 interface ArtisanHomeViewProps {
   artisanName: string;
@@ -56,6 +59,8 @@ export function ArtisanHomeView({
 }: ArtisanHomeViewProps) {
   const [showAvailableJobsModal, setShowAvailableJobsModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<ArtisanJobRequest | null>(null);
+  const [quotingJob, setQuotingJob] = useState<ArtisanJobRequest | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [jobSearch, setJobSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<JobFilterTab>("Nearby");
   const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
@@ -106,7 +111,7 @@ export function ArtisanHomeView({
     <View className="flex-1">
       {/* Top Role Switcher Bar for Seamless Customer <-> Artisan Testing */}
       <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1 rounded-full">
+        <View className="flex-row items-center bg-primary-50 border border-[#B8E2F8] px-3 py-1 rounded-full">
           <View className="w-2 h-2 rounded-full bg-[#10B981] mr-1.5" />
           <Text
             className="text-[11px] text-[#003B73]"
@@ -165,14 +170,14 @@ export function ArtisanHomeView({
             className="w-10 h-10 rounded-full items-center justify-center mr-2.5 relative"
           >
             <Ionicons name="notifications-outline" size={24} color="#2563EB" />
-            <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00A8E8]" />
+            <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push("/(tabs)/account")}
             style={styles.avatarShadow}
-            className="w-13 h-13 rounded-full border-2 border-white bg-[#E6F7FF] overflow-hidden"
+            className="w-13 h-13 rounded-full border-2 border-white bg-primary-50 overflow-hidden"
           >
             <Image
               source={images.artisanEmeka}
@@ -273,7 +278,7 @@ export function ArtisanHomeView({
                 10a - 6p
               </Text>
             </View>
-            <View className="flex-1 h-1.5 bg-white/25 rounded-full overflow-hidden max-w-[90px]">
+            <View className="flex-1 h-1.5 bg-white/25 rounded-full overflow-hidden max-w-22.5">
               <View className="w-2/3 h-full bg-white/80 rounded-full" />
             </View>
           </View>
@@ -282,7 +287,7 @@ export function ArtisanHomeView({
             activeOpacity={0.85}
             onPress={() => setShowAvailableJobsModal(true)}
             style={styles.viewBtnShadow}
-            className="bg-[#00A8E8] border border-[#8CE0FF] px-6 py-2 rounded-full"
+            className="bg-primary border border-[#8CE0FF] px-6 py-2 rounded-full"
           >
             <Text
               className="text-[13.5px] text-white"
@@ -314,7 +319,7 @@ export function ArtisanHomeView({
             style={[styles.quickActionCard, styles.cardShadow]}
             className="bg-white rounded-2xl py-3.5 px-1.5 items-center justify-center border border-[#DCEFFB]"
           >
-            <View className="w-11 h-11 rounded-full bg-[#E6F7FF] items-center justify-center mb-2">
+            <View className="w-11 h-11 rounded-full bg-primary-50 items-center justify-center mb-2">
               {item.iconFamily === "MaterialCommunityIcons" ? (
                 <MaterialCommunityIcons
                   name={item.iconName as any}
@@ -367,7 +372,7 @@ export function ArtisanHomeView({
         style={styles.cardShadow}
         className="bg-white rounded-[22px] border border-[#DCEFFB] p-2.5 mb-4"
       >
-        <View className="w-full h-36 rounded-2xl overflow-hidden mb-3 bg-[#E6F7FF]">
+        <View className="w-full h-36 rounded-2xl overflow-hidden mb-3 bg-primary-50">
           <Image
             source={featuredJob.image}
             className="w-full h-full"
@@ -406,8 +411,8 @@ export function ArtisanHomeView({
               style={styles.applyBtnShadow}
               className={`px-7 py-2.5 rounded-full ${
                 appliedJobIds.includes(featuredJob.id)
-                  ? "bg-[#10B981]"
-                  : "bg-[#00A8E8]"
+                  ? "bg-green-500"
+                  : "bg-primary"
               }`}
             >
               <Text
@@ -422,326 +427,59 @@ export function ArtisanHomeView({
       </TouchableOpacity>
 
       {/* ============================================================
-          MODAL 1: AVAILABLE JOBS / NEARBY REQUESTS
-          Matches Screen 2 (skilled4-Artisan-Available-Jobs-Screen.png)
+          ARTISAN INTERACTION MODALS
+          1. Available Jobs / Nearby Requests Sheet
          ============================================================ */}
-      <Modal
+      <AvailableJobsModal
         visible={showAvailableJobsModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowAvailableJobsModal(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet} className="bg-[#F4FAFF] rounded-t-3xl pt-5 px-5 pb-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text
-                className="text-[22px] text-[#003B73]"
-                style={{ fontFamily: "Poppins-Bold" }}
-              >
-                Available Jobs
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowAvailableJobsModal(false)}
-                className="w-9 h-9 rounded-full bg-white border border-[#D6ECFA] items-center justify-center"
-              >
-                <Ionicons name="close" size={20} color="#003B73" />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowAvailableJobsModal(false)}
+        onSelectJob={(job) => {
+          setShowAvailableJobsModal(false);
+          setSelectedJob(job);
+        }}
+        appliedJobIds={appliedJobIds}
+      />
 
-            {/* Search Input */}
-            <View className="flex-row items-center bg-white border border-[#D6ECFA] rounded-full px-4 h-11 mb-3.5">
-              <Ionicons name="search-outline" size={18} color="#7A9BB8" />
-              <TextInput
-                value={jobSearch}
-                onChangeText={setJobSearch}
-                placeholder="Search by location or service..."
-                placeholderTextColor="#8AA8C4"
-                className="flex-1 ml-2 text-[13.5px] text-[#003B73] h-full"
-                style={{ fontFamily: "Poppins-Regular" }}
-              />
-            </View>
-
-            {/* Filter Pills: Nearby | Most Recent | Highest Pay */}
-            <View className="flex-row mb-4">
-              {(["Nearby", "Most Recent", "Highest Pay"] as JobFilterTab[]).map(
-                (tab) => {
-                  const isActive = activeFilter === tab;
-                  return (
-                    <TouchableOpacity
-                      key={tab}
-                      activeOpacity={0.8}
-                      onPress={() => setActiveFilter(tab)}
-                      className={`px-4 py-2 rounded-full mr-2 border ${
-                        isActive
-                          ? "bg-[#00A8E8] border-[#00A8E8]"
-                          : "bg-[#E9F5FD] border-[#D0E8F8]"
-                      }`}
-                    >
-                      <Text
-                        className={`text-[12.5px] ${
-                          isActive ? "text-white" : "text-[#5B7C99]"
-                        }`}
-                        style={{ fontFamily: "Poppins-SemiBold" }}
-                      >
-                        {tab}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }
-              )}
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {filteredJobs.map((job) => {
-                const isApplied = appliedJobIds.includes(job.id);
-                return (
-                  <TouchableOpacity
-                    key={job.id}
-                    activeOpacity={0.88}
-                    onPress={() => {
-                      setShowAvailableJobsModal(false);
-                      setSelectedJob(job);
-                    }}
-                    style={styles.cardShadow}
-                    className="bg-white rounded-2xl p-3 mb-3 border border-[#DCEFFB] flex-row items-center"
-                  >
-                    <Image
-                      source={job.image}
-                      className="w-20 h-20 rounded-xl bg-[#E6F7FF]"
-                      resizeMode="cover"
-                    />
-                    <View className="flex-1 ml-3">
-                      <Text
-                        className="text-[15px] text-[#003B73] mb-1"
-                        style={{ fontFamily: "Poppins-SemiBold" }}
-                        numberOfLines={1}
-                      >
-                        {job.title}
-                      </Text>
-                      <Text
-                        className="text-[13px] text-[#003B73] mb-2"
-                        style={{ fontFamily: "Poppins-Bold" }}
-                      >
-                        {job.distance} <Text className="text-[#7A9BB8]">•</Text>{" "}
-                        {job.budget}
-                      </Text>
-                      <View className="flex-row items-center justify-between">
-                        <Text
-                          className="text-[11.5px] text-[#7A9BB8]"
-                          style={{ fontFamily: "Poppins-Regular" }}
-                        >
-                          {job.postedAgo}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setShowAvailableJobsModal(false);
-                            setSelectedJob(job);
-                          }}
-                          className={`px-5 py-1.5 rounded-full ${
-                            isApplied ? "bg-[#10B981]" : "bg-[#00A8E8]"
-                          }`}
-                        >
-                          <Text
-                            className="text-[12px] text-white"
-                            style={{ fontFamily: "Poppins-SemiBold" }}
-                          >
-                            {isApplied ? "Applied" : "Apply"}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* ============================================================
-          MODAL 2: JOB DETAILS & APPLY
-          Matches Screen 3 (skilled4-Artisan-Jobs-Details-Screen.png)
-         ============================================================ */}
-      <Modal
+      {/* 2. Job Lead Details Modal */}
+      <JobLeadDetailsModal
         visible={!!selectedJob}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setSelectedJob(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          {selectedJob && (
-            <View
-              style={styles.modalSheet}
-              className="bg-[#F4FAFF] rounded-t-3xl overflow-hidden pb-6"
-            >
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Top Hero Image */}
-                <View className="w-full h-48 relative bg-[#E6F7FF]">
-                  <Image
-                    source={selectedJob.detailImage}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setSelectedJob(null)}
-                    className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/90 items-center justify-center"
-                  >
-                    <Ionicons name="arrow-back" size={20} color="#003B73" />
-                  </TouchableOpacity>
-                </View>
+        job={selectedJob}
+        onClose={() => setSelectedJob(null)}
+        isApplied={selectedJob ? appliedJobIds.includes(selectedJob.id) : false}
+        onAcceptJob={(job) => handleApplyJob(job)}
+        onRequestCustomQuote={(job) => {
+          setSelectedJob(null);
+          setQuotingJob(job);
+        }}
+      />
 
-                <View className="px-5 pt-4">
-                  <Text
-                    className="text-[20px] text-[#003B73] mb-1"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    {selectedJob.title}
-                  </Text>
+      {/* 3. Custom Quote Counter-Offer Modal */}
+      <CustomQuoteModal
+        visible={!!quotingJob}
+        job={quotingJob}
+        onClose={() => setQuotingJob(null)}
+        onSubmitQuote={(quote) => {
+          Toast.show({
+            type: "success",
+            text1: "Quote Submitted! 💼",
+            text2: `Sent ₦${(quote.laborFee + quote.materialsFee).toLocaleString()} quote to client.`,
+          });
+          if (quotingJob && !appliedJobIds.includes(quotingJob.id)) {
+            setAppliedJobIds((prev) => [...prev, quotingJob.id]);
+          }
+          setQuotingJob(null);
+        }}
+      />
 
-                  <View className="flex-row items-center mb-2">
-                    <Ionicons name="location" size={15} color="#00A8E8" />
-                    <Text
-                      className="text-[13px] text-[#5B7C99] ml-1"
-                      style={{ fontFamily: "Poppins-Medium" }}
-                    >
-                      {selectedJob.distance} • {selectedJob.serviceType}
-                    </Text>
-                  </View>
-
-                  <Text
-                    className="text-[22px] text-[#003B73] mb-2.5"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    {selectedJob.budget}
-                  </Text>
-
-                  <Text
-                    className="text-[13.5px] text-[#5B7C99] mb-4"
-                    style={{ fontFamily: "Poppins-Regular", lineHeight: 20 }}
-                  >
-                    {selectedJob.description}
-                  </Text>
-
-                  {/* Client Details Card */}
-                  <View className="bg-white rounded-2xl p-3.5 mb-4 border border-[#DCEFFB]">
-                    <Text
-                      className="text-[14px] text-[#003B73] mb-2.5"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Client Details
-                    </Text>
-                    <View className="flex-row items-center mb-2.5">
-                      <Image
-                        source={selectedJob.client.avatar}
-                        className="w-11 h-11 rounded-full bg-[#E6F7FF]"
-                        resizeMode="cover"
-                      />
-                      <View className="ml-3">
-                        <Text
-                          className="text-[14.5px] text-[#003B73]"
-                          style={{ fontFamily: "Poppins-SemiBold" }}
-                        >
-                          {selectedJob.client.name}
-                        </Text>
-                        <View className="flex-row items-center mt-0.5">
-                          <Ionicons name="star" size={13} color="#F59E0B" />
-                          <Text
-                            className="text-[12px] text-[#5B7C99] ml-1"
-                            style={{ fontFamily: "Poppins-Medium" }}
-                          >
-                            {selectedJob.client.rating} (
-                            {selectedJob.client.reviews} reviews)
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                    <View className="flex-row items-center justify-between pt-2 border-t border-[#EDF6FC]">
-                      <View className="flex-row items-center">
-                        <Ionicons
-                          name="location-outline"
-                          size={14}
-                          color="#5B7C99"
-                        />
-                        <Text
-                          className="text-[12px] text-[#5B7C99] ml-1"
-                          style={{ fontFamily: "Poppins-Regular" }}
-                        >
-                          {selectedJob.distance}
-                        </Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <Ionicons
-                          name="time-outline"
-                          size={14}
-                          color="#5B7C99"
-                        />
-                        <Text
-                          className="text-[12px] text-[#5B7C99] ml-1"
-                          style={{ fontFamily: "Poppins-Regular" }}
-                        >
-                          Posted {selectedJob.postedAgo}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Requirements */}
-                  <View className="mb-5">
-                    <Text
-                      className="text-[14.5px] text-[#003B73] mb-2"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Requirements
-                    </Text>
-                    {selectedJob.requirements.map((req, i) => (
-                      <View key={i} className="flex-row items-center mb-1.5">
-                        <View className="w-1.5 h-1.5 rounded-full bg-[#00A8E8] mr-2.5" />
-                        <Text
-                          className="text-[13px] text-[#5B7C99]"
-                          style={{ fontFamily: "Poppins-Regular" }}
-                        >
-                          {req}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Actions */}
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => handleApplyJob(selectedJob)}
-                    style={styles.applyBtnShadow}
-                    className="w-full bg-[#00A8E8] py-3.5 rounded-full items-center mb-2.5"
-                  >
-                    <Text
-                      className="text-[15px] text-white"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Apply for Job
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setSelectedJob(null);
-                      router.push("/(tabs)/support");
-                    }}
-                    className="w-full bg-white border border-[#B8E2F8] py-3 rounded-full items-center"
-                  >
-                    <Text
-                      className="text-[14px] text-[#003B73]"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Message Client
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </View>
-          )}
-        </View>
-      </Modal>
+      {/* 4. Wallet Earnings Withdrawal Modal */}
+      <WithdrawFundsModal
+        visible={showWithdrawModal}
+        availableBalance={148500}
+        onClose={() => setShowWithdrawModal(false)}
+        onSuccessWithdrawal={() => {
+          setShowWithdrawModal(false);
+        }}
+      />
     </View>
   );
 }

@@ -16,6 +16,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { InteractiveMapCanvas } from "../../components/location/InteractiveMapCanvas";
+import {
+  CancelBookingModal,
+  JobCompletionModal,
+  JobStatusActionModal,
+} from "../../components/modals";
 import { images } from "../../constants/images";
 
 type BookingStatusTab = "Upcoming" | "Completed" | "Cancelled";
@@ -173,6 +178,20 @@ export default function BookingsScreen() {
   const [ratingStars, setRatingStars] = useState(5);
   const [mapCoords, setMapCoords] = useState({ lat: 9.0765, lon: 7.4765 });
 
+  // Artisan Job Interaction Modals
+  const [artisanBookingsList, setArtisanBookingsList] =
+    useState<ArtisanBookingItem[]>(ARTISAN_BOOKINGS);
+  const [selectedArtisanJobForAction, setSelectedArtisanJobForAction] =
+    useState<ArtisanBookingItem | null>(null);
+  const [completingArtisanJob, setCompletingArtisanJob] =
+    useState<ArtisanBookingItem | null>(null);
+
+  // Cancellation Modal State
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(
+    null
+  );
+  const [cancellingArtisanName, setCancellingArtisanName] = useState<string>("");
+
   useFocusEffect(
     useCallback(() => {
       const loadBookingContext = async () => {
@@ -278,7 +297,7 @@ export default function BookingsScreen() {
   const filteredCustomerBookings = customerBookings.filter(
     (b) => b.tab === activeTab
   );
-  const filteredArtisanBookings = ARTISAN_BOOKINGS.filter(
+  const filteredArtisanBookings = artisanBookingsList.filter(
     (b) => b.tab === activeTab
   );
 
@@ -337,7 +356,7 @@ export default function BookingsScreen() {
                 style={styles.tabPill}
                 className={`py-2.5 rounded-full items-center justify-center border ${
                   isActive
-                    ? "bg-[#00A8E8] border-[#00A8E8]"
+                    ? "bg-primary border-primary"
                     : "bg-[#E9F5FD] border-[#D0E8F8]"
                 }`}
               >
@@ -368,19 +387,26 @@ export default function BookingsScreen() {
             <TouchableOpacity
               key={booking.id}
               activeOpacity={0.88}
-              onPress={() =>
-                Toast.show({
-                  type: "info",
-                  text1: booking.title,
-                  text2: `Client: ${booking.clientName} • ${booking.dateTime}`,
-                })
-              }
+              onPress={() => {
+                if (
+                  booking.status === "Completed" ||
+                  booking.status === "Cancelled"
+                ) {
+                  Toast.show({
+                    type: "info",
+                    text1: booking.title,
+                    text2: `Status: ${booking.status} • Client: ${booking.clientName}`,
+                  });
+                } else {
+                  setSelectedArtisanJobForAction(booking);
+                }
+              }}
               style={styles.cardShadow}
               className="bg-white rounded-2xl p-3.5 mb-3.5 border border-[#DCEFFB] flex-row items-center"
             >
               <Image
                 source={booking.image}
-                className="w-20 h-20 rounded-xl bg-[#E6F7FF]"
+                className="w-20 h-20 rounded-xl bg-primary-50"
                 resizeMode="cover"
               />
 
@@ -436,7 +462,7 @@ export default function BookingsScreen() {
               style={styles.cardShadow}
               className="bg-white rounded-2xl p-4 mb-3.5 border border-[#DCEFFB] flex-row items-center"
             >
-              <View className="w-15 h-15 rounded-full overflow-hidden bg-[#E6F7FF] border border-[#B8E2F8]">
+              <View className="w-15 h-15 rounded-full overflow-hidden bg-primary-50 border border-[#B8E2F8]">
                 <Image
                   source={booking.avatar}
                   className="w-full h-full"
@@ -529,7 +555,7 @@ export default function BookingsScreen() {
                   className="bg-white rounded-2xl p-3.5 mb-4 border border-[#DCEFFB] flex-row items-center justify-between"
                 >
                   <View className="flex-row items-center flex-1 mr-2">
-                    <View className="w-13 h-13 rounded-full overflow-hidden bg-[#E6F7FF] border border-[#B8E2F8]">
+                    <View className="w-13 h-13 rounded-full overflow-hidden bg-primary-50 border border-[#B8E2F8]">
                       <Image
                         source={trackingBooking.avatar}
                         className="w-full h-full"
@@ -750,7 +776,7 @@ export default function BookingsScreen() {
                           >
                             <View
                               className={`w-4 h-4 rounded-full items-center justify-center ${
-                                isDone ? "bg-[#00A8E8]" : "bg-[#CBD5E1]"
+                                isDone ? "bg-primary" : "bg-[#CBD5E1]"
                               }`}
                             >
                               {isDone && (
@@ -763,7 +789,7 @@ export default function BookingsScreen() {
                             <View
                               className={`flex-1 h-1 mx-1 rounded-full ${
                                 idx < trackingStepIndex
-                                  ? "bg-[#00A8E8]"
+                                  ? "bg-primary"
                                   : "bg-[#DCEFFB]"
                               }`}
                             />
@@ -793,6 +819,23 @@ export default function BookingsScreen() {
                       );
                     })}
                   </View>
+
+                  {/* Cancel Booking Action Trigger */}
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setCancellingBookingId(trackingBooking.id);
+                      setCancellingArtisanName(trackingBooking.artisanName);
+                    }}
+                    className="items-center py-3 mt-4"
+                  >
+                    <Text
+                      className="text-[12.5px] text-[#EF4444]"
+                      style={{ fontFamily: "Poppins-Medium" }}
+                    >
+                      Cancel this Booking
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </ScrollView>
             </View>
@@ -836,12 +879,12 @@ export default function BookingsScreen() {
                 <View className="w-28 h-28 rounded-full bg-[#E1F4FF] items-center justify-center">
                   <View
                     style={styles.confirmBtnShadow}
-                    className="w-20 h-20 rounded-full bg-[#00A8E8] border-4 border-[#6BD4FF] items-center justify-center"
+                    className="w-20 h-20 rounded-full bg-primary border-4 border-[#6BD4FF] items-center justify-center"
                   >
                     <Ionicons name="checkmark" size={42} color="#FFFFFF" />
                   </View>
                 </View>
-                <View className="w-5 h-5 bg-[#00A8E8] rotate-45 -mt-3.5" />
+                <View className="w-5 h-5 bg-primary rotate-45 -mt-3.5" />
               </View>
 
               <Text
@@ -867,7 +910,7 @@ export default function BookingsScreen() {
                 <View className="flex-row items-center pb-3.5 mb-3.5 border-b border-[#EDF6FC]">
                   <Image
                     source={completedBookingForRating.avatar}
-                    className="w-11 h-11 rounded-full bg-[#E6F7FF]"
+                    className="w-11 h-11 rounded-full bg-primary-50"
                     resizeMode="cover"
                   />
                   <View className="ml-3">
@@ -1018,7 +1061,7 @@ export default function BookingsScreen() {
                     });
                   }}
                   style={styles.confirmBtnShadow}
-                  className="w-full bg-[#00A8E8] py-3.5 rounded-full items-center mb-3"
+                  className="w-full bg-primary py-3.5 rounded-full items-center mb-3"
                 >
                   <Text
                     className="text-[15px] text-white"
@@ -1043,6 +1086,115 @@ export default function BookingsScreen() {
           )}
         </SafeAreaView>
       </Modal>
+
+      {/* ============================================================
+          NEW MODULAR INTERACTION MODALS
+          1. Cancel Booking Modal (Customer)
+          2. Job Status Action Sheet (Artisan)
+          3. Job Completion & PIN Verification Modal (Artisan)
+         ============================================================ */}
+      <CancelBookingModal
+        visible={!!cancellingBookingId}
+        bookingId={cancellingBookingId || undefined}
+        artisanName={cancellingArtisanName}
+        onClose={() => setCancellingBookingId(null)}
+        onConfirmCancel={(reason) => {
+          if (cancellingBookingId) {
+            setCustomerBookings((prev) =>
+              prev.map((b) =>
+                b.id === cancellingBookingId
+                  ? {
+                      ...b,
+                      status: "Cancelled",
+                      tab: "Cancelled" as BookingStatusTab,
+                    }
+                  : b
+              )
+            );
+            Toast.show({
+              type: "success",
+              text1: "Booking Cancelled",
+              text2: `Reason: ${reason}`,
+            });
+            setTrackingBooking(null);
+            setCancellingBookingId(null);
+          }
+        }}
+      />
+
+      <JobStatusActionModal
+        visible={!!selectedArtisanJobForAction}
+        jobTitle={selectedArtisanJobForAction?.title}
+        clientName={selectedArtisanJobForAction?.clientName}
+        currentStatus={
+          (selectedArtisanJobForAction?.status as any) || "Confirmed"
+        }
+        onClose={() => setSelectedArtisanJobForAction(null)}
+        onUpdateStatus={(newStatus) => {
+          if (selectedArtisanJobForAction) {
+            setArtisanBookingsList((prev) =>
+              prev.map((b) =>
+                b.id === selectedArtisanJobForAction.id
+                  ? { ...b, status: newStatus as any }
+                  : b
+              )
+            );
+            Toast.show({
+              type: "success",
+              text1: "Status Updated",
+              text2: `Job marked as "${newStatus}".`,
+            });
+            setSelectedArtisanJobForAction(null);
+          }
+        }}
+        onRequestCompletionCode={() => {
+          const job = selectedArtisanJobForAction;
+          setSelectedArtisanJobForAction(null);
+          setCompletingArtisanJob(job);
+        }}
+        onCallClient={() => {
+          Toast.show({
+            type: "info",
+            text1: "Calling Client",
+            text2: `Dialing ${selectedArtisanJobForAction?.clientName}...`,
+          });
+        }}
+        onChatClient={() => {
+          const job = selectedArtisanJobForAction;
+          setSelectedArtisanJobForAction(null);
+          router.push({
+            pathname: "/(tabs)/support",
+            params: {
+              artisanName: job?.clientName,
+              artisanTrade: job?.title,
+            },
+          });
+        }}
+      />
+
+      <JobCompletionModal
+        visible={!!completingArtisanJob}
+        jobTitle={completingArtisanJob?.title}
+        clientName={completingArtisanJob?.clientName}
+        expectedPin="5842"
+        onClose={() => setCompletingArtisanJob(null)}
+        onSuccessCompletion={() => {
+          if (completingArtisanJob) {
+            setArtisanBookingsList((prev) =>
+              prev.map((b) =>
+                b.id === completingArtisanJob.id
+                  ? {
+                      ...b,
+                      status: "Completed",
+                      tab: "Completed" as BookingStatusTab,
+                    }
+                  : b
+              )
+            );
+            setCompletingArtisanJob(null);
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }

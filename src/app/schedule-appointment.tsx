@@ -155,7 +155,7 @@ export default function BookServiceScreen() {
             style={styles.cardShadow}
             className="bg-white rounded-2xl p-3.5 mb-5 border border-[#DCEFFB] flex-row items-center"
           >
-            <View className="w-14 h-14 rounded-full overflow-hidden bg-[#E6F7FF] border border-[#B8E2F8]">
+            <View className="w-14 h-14 rounded-full overflow-hidden bg-primary-50 border border-[#B8E2F8]">
               <Image
                 source={matchedArtisan.avatarSource}
                 className="w-full h-full"
@@ -210,7 +210,7 @@ export default function BookServiceScreen() {
                     activeOpacity={0.8}
                     onPress={() => setSelectedDay(item.dateNum)}
                     className={`w-[15%] py-2.5 rounded-2xl items-center justify-center ${
-                      isSelected ? "bg-[#00A8E8]" : "bg-transparent"
+                      isSelected ? "bg-primary" : "bg-transparent"
                     }`}
                   >
                     <Text
@@ -247,7 +247,7 @@ export default function BookServiceScreen() {
                   style={styles.timePill}
                   className={`py-2.5 rounded-xl items-center justify-center mb-2.5 border ${
                     isSelected
-                      ? "bg-[#00A8E8] border-[#00A8E8]"
+                      ? "bg-primary border-primary"
                       : "bg-white border-[#DCEFFB]"
                   }`}
                 >
@@ -326,7 +326,7 @@ export default function BookServiceScreen() {
               multiline
               numberOfLines={3}
               textAlignVertical="top"
-              className="text-[13.5px] text-[#003B73] min-h-[72px]"
+              className="text-[13.5px] text-[#003B73] min-h-18"
               style={{ fontFamily: "Poppins-Regular" }}
             />
           </View>
@@ -354,7 +354,7 @@ export default function BookServiceScreen() {
               disabled={isSubmitting}
               onPress={handleConfirmBooking}
               style={styles.confirmBtnShadow}
-              className="w-full bg-[#00A8E8] py-3.5 rounded-full items-center"
+              className="w-full bg-primary py-3.5 rounded-full items-center"
             >
               <Text
                 className="text-[15px] text-white"

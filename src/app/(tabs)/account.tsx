@@ -242,7 +242,7 @@ export default function AccountScreen() {
             style={styles.cardShadow}
             className="bg-white rounded-2xl p-4 mb-4 border border-[#DCEFFB] flex-row items-center"
           >
-            <View className="w-18 h-18 rounded-full overflow-hidden bg-[#E6F7FF] border-2 border-[#B8E2F8]">
+            <View className="w-18 h-18 rounded-full overflow-hidden bg-primary-50 border-2 border-[#B8E2F8]">
               <Image
                 source={images.artisanEmeka}
                 className="w-full h-full"
@@ -300,7 +300,7 @@ export default function AccountScreen() {
             style={styles.cardShadow}
             className="bg-white rounded-2xl p-4 mb-4 border border-[#DCEFFB] flex-row items-center"
           >
-            <View className="w-16 h-16 rounded-full overflow-hidden bg-[#E6F7FF] border-2 border-[#B8E2F8]">
+            <View className="w-16 h-16 rounded-full overflow-hidden bg-primary-50 border-2 border-[#B8E2F8]">
               <Image
                 source={images.artisanTunde}
                 className="w-full h-full"

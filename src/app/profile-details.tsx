@@ -109,7 +109,7 @@ export default function ProfileDetailsScreen() {
           {/* Avatar Section */}
           <View className="items-center my-4">
             <View className="relative">
-              <View className="w-24 h-24 rounded-full overflow-hidden bg-[#E6F7FF] border-2 border-[#00A8E8]">
+              <View className="w-24 h-24 rounded-full overflow-hidden bg-primary-50 border-2 border-primary">
                 <Image
                   source={
                     role === "artisan"
@@ -128,7 +128,7 @@ export default function ProfileDetailsScreen() {
                     text2: "Photo verified.",
                   })
                 }
-                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#00A8E8] border-2 border-white items-center justify-center"
+                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary border-2 border-white items-center justify-center"
               >
                 <Ionicons name="camera" size={14} color="#FFFFFF" />
               </TouchableOpacity>
@@ -229,7 +229,7 @@ export default function ProfileDetailsScreen() {
             activeOpacity={0.85}
             onPress={handleSaveChanges}
             style={styles.saveBtnShadow}
-            className="w-full bg-[#00A8E8] py-3.5 rounded-full items-center"
+            className="w-full bg-primary py-3.5 rounded-full items-center"
           >
             <Text
               className="text-[15px] text-white"

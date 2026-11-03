@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -14,9 +13,19 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { images } from "../../constants/images";
-import { ARTISANS, Artisan } from "../../data/artisans";
-import { Category, CUSTOMER_ONBOARDING_SERVICES } from "../../data/categories";
+import { Artisan, ARTISANS } from "../../data/artisans";
+import {
+  Category,
+  CUSTOMER_ONBOARDING_SERVICES,
+  POPULAR_CATEGORIES,
+} from "../../data/categories";
 import { InteractiveMapCanvas } from "../location/InteractiveMapCanvas";
+import {
+  ArtisanQuickViewModal,
+  BookingScheduleData,
+  BookingSummaryModal,
+  ScheduleBookingModal,
+} from "../modals";
 
 interface CustomerHomeViewProps {
   locationTitle: string;
@@ -40,6 +49,7 @@ export function CustomerHomeView({
   coords,
   onCoordsChange,
   onEditLocation,
+  onCategoryPress,
   onSwitchRole,
 }: CustomerHomeViewProps) {
   const [selectedServiceFilter, setSelectedServiceFilter] =
@@ -47,8 +57,12 @@ export function CustomerHomeView({
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan | null>(null);
+  const [bookingArtisan, setBookingArtisan] = useState<Artisan | null>(null);
+  const [bookingScheduleData, setBookingScheduleData] =
+    useState<BookingScheduleData | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [mapZoom, setMapZoom] = useState(14);
+  const [showAllArtisans, setShowAllArtisans] = useState(false);
 
   const filteredArtisans = ARTISANS.filter((artisan) => {
     const matchesCategory =
@@ -77,8 +91,8 @@ export function CustomerHomeView({
     <View className="flex-1">
       {/* Top Role Switcher Bar for Seamless Customer <-> Artisan Testing */}
       <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1 rounded-full">
-          <View className="w-2 h-2 rounded-full bg-[#00A8E8] mr-1.5" />
+        <View className="flex-row items-center bg-primary-50 border border-[#B8E2F8] px-3 py-1 rounded-full">
+          <View className="w-2 h-2 rounded-full bg-primary mr-1.5" />
           <Text
             className="text-[11px] text-[#003B73]"
             style={{ fontFamily: "Poppins-SemiBold" }}
@@ -137,7 +151,7 @@ export function CustomerHomeView({
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push("/(tabs)/account")}
-            className="w-10 h-10 rounded-full bg-[#E6F7FF] border border-[#B8E2F8] items-center justify-center"
+            className="w-10 h-10 rounded-full bg-primary-50 border border-[#B8E2F8] items-center justify-center"
           >
             <Ionicons name="person-outline" size={20} color="#003B73" />
           </TouchableOpacity>
@@ -175,7 +189,7 @@ export function CustomerHomeView({
         className="bg-white rounded-2xl px-4 py-3 mb-3.5 border border-[#DCEFFB] flex-row items-center justify-between"
       >
         <View className="flex-row items-center flex-1 mr-3">
-          <View className="w-9 h-9 rounded-full bg-[#E6F7FF] items-center justify-center mr-3">
+          <View className="w-9 h-9 rounded-full bg-primary-50 items-center justify-center mr-3">
             <Ionicons name="location" size={19} color="#0099DF" />
           </View>
           <View className="flex-1">
@@ -215,7 +229,7 @@ export function CustomerHomeView({
           onPress={() => setSelectedServiceFilter("all")}
           className={`flex-row items-center px-3.5 py-2 rounded-full mr-2 border ${
             selectedServiceFilter === "all"
-              ? "bg-[#00A8E8] border-[#00A8E8]"
+              ? "bg-primary border-primary"
               : "bg-white border-[#DCEFFB]"
           }`}
         >
@@ -243,16 +257,56 @@ export function CustomerHomeView({
               activeOpacity={0.8}
               onPress={() => {
                 if (service.id === "more") {
-                  router.push("/all-services");
+                  if (onCategoryPress) {
+                    onCategoryPress({
+                      id: "all_services",
+                      title: "All Services",
+                      iconName: "grid-outline",
+                      iconFamily: "Ionicons",
+                      subServices: [
+                        "Plumbing Repair & Leak Fixing",
+                        "Electrical Wiring & Lighting",
+                        "Carpentry & Furniture",
+                        "Tailoring & Fashion Design",
+                        "Painting & Wall Screeding",
+                        "Home & Appliance Repair",
+                        "Cleaning & Fumigation",
+                        "Welding & Fabrication",
+                      ],
+                    });
+                  }
                 } else {
                   setSelectedServiceFilter(
                     isSelected ? "all" : service.id
                   );
+                  if (onCategoryPress) {
+                    const matchedCat = POPULAR_CATEGORIES.find(
+                      (c) =>
+                        c.title
+                          .toLowerCase()
+                          .includes(cleanTitle.toLowerCase()) ||
+                        cleanTitle
+                          .toLowerCase()
+                          .includes(c.title.toLowerCase())
+                    ) || {
+                      id: service.id,
+                      title: cleanTitle,
+                      iconName: service.iconName,
+                      iconFamily: service.iconFamily as any,
+                      subServices: [
+                        `${cleanTitle} Repair`,
+                        `${cleanTitle} Installation`,
+                        `${cleanTitle} Maintenance`,
+                        `${cleanTitle} Inspection`,
+                      ],
+                    };
+                    onCategoryPress(matchedCat);
+                  }
                 }
               }}
               className={`flex-row items-center px-3.5 py-2 rounded-full mr-2 border ${
                 isSelected
-                  ? "bg-[#00A8E8] border-[#00A8E8]"
+                  ? "bg-primary border-primary"
                   : "bg-white border-[#DCEFFB]"
               }`}
             >
@@ -283,8 +337,29 @@ export function CustomerHomeView({
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => router.push("/all-services")}
-          className="flex-row items-center px-3.5 py-2 rounded-full bg-[#E6F7FF] border border-[#B8E2F8]"
+          onPress={() => {
+            if (onCategoryPress) {
+              onCategoryPress({
+                id: "all_services",
+                title: "All Services",
+                iconName: "grid-outline",
+                iconFamily: "Ionicons",
+                subServices: [
+                  "Plumbing Repair & Leak Fixing",
+                  "Electrical Wiring & Lighting",
+                  "Carpentry & Furniture",
+                  "Tailoring & Fashion Design",
+                  "Painting & Wall Screeding",
+                  "Home & Appliance Repair",
+                  "Cleaning & Fumigation",
+                  "Welding & Fabrication",
+                ],
+              });
+            } else {
+              setSelectedServiceFilter("all");
+            }
+          }}
+          className="flex-row items-center px-3.5 py-2 rounded-full bg-primary-50 border border-[#B8E2F8]"
         >
           <Text
             className="text-[12px] text-[#003B73] mr-1"
@@ -344,7 +419,7 @@ export function CustomerHomeView({
                 style={[styles.centerCountBadge, styles.badgeShadow]}
                 className="bg-white/95 px-4 py-1.5 rounded-full border border-[#B8E2F8] flex-row items-center"
               >
-                <View className="w-2 h-2 rounded-full bg-[#00A8E8] mr-1.5" />
+                <View className="w-2 h-2 rounded-full bg-primary mr-1.5" />
                 <Text
                   className="text-[12px] text-[#003B73]"
                   style={{ fontFamily: "Poppins-SemiBold" }}
@@ -390,18 +465,27 @@ export function CustomerHomeView({
         >
           Available Artisans Near You
         </Text>
-        <TouchableOpacity onPress={() => router.push("/service-providers")}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            setShowAllArtisans((prev) => !prev);
+            if (!showAllArtisans) {
+              setSelectedServiceFilter("all");
+              setSearchQuery("");
+            }
+          }}
+        >
           <Text
             className="text-[13px] text-[#00A8E8]"
             style={{ fontFamily: "Poppins-SemiBold" }}
           >
-            See All
+            {showAllArtisans ? "Show Less" : "See All"}
           </Text>
         </TouchableOpacity>
       </View>
 
       <View className="mb-2">
-        {displayedArtisans.slice(0, 3).map((artisan) => (
+        {(showAllArtisans ? displayedArtisans : displayedArtisans.slice(0, 3)).map((artisan) => (
           <TouchableOpacity
             key={artisan.id}
             activeOpacity={0.88}
@@ -410,7 +494,7 @@ export function CustomerHomeView({
             className="bg-white rounded-2xl p-3.5 mb-3 border border-[#DCEFFB] flex-row items-center"
           >
             {/* Artisan Portrait */}
-            <View className="w-16 h-16 rounded-2xl overflow-hidden bg-[#E6F7FF] border border-[#D6ECFA]">
+            <View className="w-16 h-16 rounded-2xl overflow-hidden bg-primary-50 border border-[#D6ECFA]">
               <Image
                 source={artisan.avatarSource}
                 className="w-full h-full"
@@ -476,249 +560,52 @@ export function CustomerHomeView({
       </View>
 
       {/* ============================================================
-          MODAL: ARTISAN PROFILE & BOOK NOW
-          Matches Screen 5 (skilled4-see-artisan-near-you.png)
+          CUSTOMER INTERACTION MODALS
+          1. Artisan Quick View Sheet
+          2. Schedule & Booking Slot Modal
+          3. Order Summary & Escrow Payment Modal
          ============================================================ */}
-      <Modal
+      <ArtisanQuickViewModal
         visible={!!selectedArtisan}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setSelectedArtisan(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          {selectedArtisan && (
-            <View
-              style={styles.modalSheet}
-              className="bg-white rounded-t-3xl overflow-hidden pb-6"
-            >
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Portrait Header with Back, Favorite & Verified Badge */}
-                <View className="w-full h-56 bg-[#E6F7FF] relative">
-                  <Image
-                    source={selectedArtisan.avatarSource}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                  />
+        artisan={selectedArtisan}
+        isFavorite={
+          selectedArtisan ? favoriteIds.includes(selectedArtisan.id) : false
+        }
+        onToggleFavorite={toggleFavorite}
+        onClose={() => setSelectedArtisan(null)}
+        onBookNow={(artisan) => {
+          setSelectedArtisan(null);
+          setBookingArtisan(artisan);
+        }}
+        onSendMessage={(artisan) => {
+          setSelectedArtisan(null);
+          router.push({
+            pathname: "/(tabs)/support",
+            params: { artisanName: artisan.name, artisanTrade: artisan.trade },
+          });
+        }}
+      />
 
-                  <TouchableOpacity
-                    onPress={() => setSelectedArtisan(null)}
-                    className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/95 items-center justify-center"
-                  >
-                    <Ionicons name="arrow-back" size={20} color="#003B73" />
-                  </TouchableOpacity>
+      <ScheduleBookingModal
+        visible={!!bookingArtisan}
+        artisan={bookingArtisan}
+        defaultAddress={locationTitle}
+        onClose={() => setBookingArtisan(null)}
+        onProceedToSummary={(data) => {
+          setBookingArtisan(null);
+          setBookingScheduleData(data);
+        }}
+      />
 
-                  <TouchableOpacity
-                    onPress={() => toggleFavorite(selectedArtisan.id)}
-                    className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/95 items-center justify-center"
-                  >
-                    <Ionicons
-                      name={
-                        favoriteIds.includes(selectedArtisan.id)
-                          ? "heart"
-                          : "heart-outline"
-                      }
-                      size={20}
-                      color={
-                        favoriteIds.includes(selectedArtisan.id)
-                          ? "#EF4444"
-                          : "#003B73"
-                      }
-                    />
-                  </TouchableOpacity>
-
-                  {/* Floating Verified Badge */}
-                  <View className="absolute top-16 right-4 bg-white/95 px-3 py-1 rounded-full flex-row items-center border border-[#D6ECFA]">
-                    <Ionicons
-                      name="shield-checkmark"
-                      size={14}
-                      color="#00A8E8"
-                    />
-                    <Text
-                      className="text-[11.5px] text-[#003B73] ml-1"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Verified
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="px-5 pt-4">
-                  {/* Name & Trade */}
-                  <Text
-                    className="text-[22px] text-[#003B73]"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    {selectedArtisan.name}
-                  </Text>
-
-                  <View className="flex-row items-center mt-0.5 mb-2">
-                    <Ionicons name="location" size={16} color="#00A8E8" />
-                    <Text
-                      className="text-[14px] text-[#5B7C99] ml-1"
-                      style={{ fontFamily: "Poppins-Medium" }}
-                    >
-                      {selectedArtisan.trade}
-                    </Text>
-                  </View>
-
-                  {/* Rating & Distance Row */}
-                  <View className="flex-row items-center justify-between mb-3.5">
-                    <View className="flex-row items-center">
-                      <Ionicons name="star" size={16} color="#F59E0B" />
-                      <Text
-                        className="text-[14px] text-[#003B73] ml-1"
-                        style={{ fontFamily: "Poppins-Bold" }}
-                      >
-                        {selectedArtisan.rating}
-                      </Text>
-                      <Text
-                        className="text-[13px] text-[#5B7C99] ml-1"
-                        style={{ fontFamily: "Poppins-Regular" }}
-                      >
-                        ({selectedArtisan.reviews} reviews)
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center">
-                      <Ionicons
-                        name="location-outline"
-                        size={15}
-                        color="#5B7C99"
-                      />
-                      <Text
-                        className="text-[13px] text-[#5B7C99] ml-1"
-                        style={{ fontFamily: "Poppins-Medium" }}
-                      >
-                        {selectedArtisan.distance}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* 3 Verification Pills: Verified | Background Checked | Insured */}
-                  <View className="flex-row flex-wrap mb-4">
-                    <View className="flex-row items-center bg-[#E8F8F0] border border-[#B2F0D2] px-2.5 py-1 rounded-full mr-2 mb-1.5">
-                      <Ionicons
-                        name="shield-checkmark"
-                        size={13}
-                        color="#10B981"
-                      />
-                      <Text
-                        className="text-[11px] text-[#059669] ml-1"
-                        style={{ fontFamily: "Poppins-SemiBold" }}
-                      >
-                        Verified
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center bg-[#EBF7FF] border border-[#C6E6FC] px-2.5 py-1 rounded-full mr-2 mb-1.5">
-                      <Ionicons
-                        name="checkmark-done-circle"
-                        size={13}
-                        color="#0099DF"
-                      />
-                      <Text
-                        className="text-[11px] text-[#003B73] ml-1"
-                        style={{ fontFamily: "Poppins-SemiBold" }}
-                      >
-                        Background Checked
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center bg-[#EBF7FF] border border-[#C6E6FC] px-2.5 py-1 rounded-full mb-1.5">
-                      <Ionicons name="ribbon" size={13} color="#0099DF" />
-                      <Text
-                        className="text-[11px] text-[#003B73] ml-1"
-                        style={{ fontFamily: "Poppins-SemiBold" }}
-                      >
-                        Insured
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* About */}
-                  <Text
-                    className="text-[15px] text-[#003B73] mb-1"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    About
-                  </Text>
-                  <Text
-                    className="text-[13px] text-[#5B7C99] mb-3.5"
-                    style={{ fontFamily: "Poppins-Regular", lineHeight: 20 }}
-                  >
-                    {selectedArtisan.about}
-                  </Text>
-
-                  {/* Skill Chips */}
-                  <View className="flex-row flex-wrap mb-4">
-                    {selectedArtisan.skills.map((skill) => (
-                      <View
-                        key={skill}
-                        className="bg-[#F0F9FF] border border-[#D6ECFA] px-3.5 py-1.5 rounded-full mr-2 mb-2"
-                      >
-                        <Text
-                          className="text-[12px] text-[#003B73]"
-                          style={{ fontFamily: "Poppins-Medium" }}
-                        >
-                          {skill}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Recent Work */}
-                  <Text
-                    className="text-[15px] text-[#003B73] mb-2"
-                    style={{ fontFamily: "Poppins-Bold" }}
-                  >
-                    Recent Work
-                  </Text>
-                  <View className="flex-row justify-between mb-5">
-                    {selectedArtisan.recentWork.map((workImg, idx) => (
-                      <View
-                        key={idx}
-                        style={{ width: "31.5%" }}
-                        className="h-24 rounded-xl overflow-hidden bg-[#E6F7FF] border border-[#DCEFFB]"
-                      >
-                        <Image
-                          source={workImg}
-                          className="w-full h-full"
-                          resizeMode="cover"
-                        />
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Book Now CTA */}
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => {
-                      const artisanToBook = selectedArtisan;
-                      setSelectedArtisan(null);
-                      router.push({
-                        pathname: "/schedule-appointment",
-                        params: {
-                          artisanName: artisanToBook.name,
-                          artisanTrade: artisanToBook.trade,
-                        },
-                      });
-                    }}
-                    style={styles.bookBtnShadow}
-                    className="w-full bg-[#00A8E8] py-3.5 rounded-full items-center"
-                  >
-                    <Text
-                      className="text-[15px] text-white"
-                      style={{ fontFamily: "Poppins-SemiBold" }}
-                    >
-                      Book Now
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </View>
-          )}
-        </View>
-      </Modal>
+      <BookingSummaryModal
+        visible={!!bookingScheduleData}
+        data={bookingScheduleData}
+        onClose={() => setBookingScheduleData(null)}
+        onBookingConfirmed={() => {
+          setBookingScheduleData(null);
+          router.push("/(tabs)/jobs");
+        }}
+      />
     </View>
   );
 }

@@ -196,7 +196,7 @@ export default function MessagesScreen() {
                 <Ionicons name="arrow-back" size={22} color="#003B73" />
               </TouchableOpacity>
 
-              <View className="w-11 h-11 rounded-full overflow-hidden bg-[#E6F7FF] border border-[#B8E2F8]">
+              <View className="w-11 h-11 rounded-full overflow-hidden bg-primary-50 border border-[#B8E2F8]">
                 <Image
                   source={activeConversation.avatar}
                   className="w-full h-full"
@@ -248,7 +248,7 @@ export default function MessagesScreen() {
                   <View key={msg.id} className="items-end mb-4">
                     <View
                       style={styles.cardShadow}
-                      className="w-60 h-40 rounded-2xl overflow-hidden border-2 border-white relative bg-[#E6F7FF]"
+                      className="w-60 h-40 rounded-2xl overflow-hidden border-2 border-white relative bg-primary-50"
                     >
                       <Image
                         source={msg.image}
@@ -278,7 +278,7 @@ export default function MessagesScreen() {
                   <View key={msg.id} className="items-end mb-3.5">
                     <View
                       style={styles.sentBubbleShadow}
-                      className="bg-[#00A8E8] rounded-2xl rounded-tr-sm px-4 py-3 max-w-[78%]"
+                      className="bg-primary rounded-2xl rounded-tr-sm px-4 py-3 max-w-[78%]"
                     >
                       <Text
                         className="text-[13.5px] text-white"
@@ -302,7 +302,7 @@ export default function MessagesScreen() {
 
               return (
                 <View key={msg.id} className="flex-row items-start mb-3.5">
-                  <View className="w-8 h-8 rounded-full overflow-hidden bg-[#E6F7FF] mr-2.5 mt-1">
+                  <View className="w-8 h-8 rounded-full overflow-hidden bg-primary-50 mr-2.5 mt-1">
                     <Image
                       source={activeConversation.avatar}
                       className="w-full h-full"
@@ -363,7 +363,7 @@ export default function MessagesScreen() {
               activeOpacity={0.85}
               onPress={handleSendMessage}
               style={styles.sentBubbleShadow}
-              className="w-11 h-11 rounded-full bg-[#00A8E8] items-center justify-center"
+              className="w-11 h-11 rounded-full bg-primary items-center justify-center"
             >
               <Ionicons name="paper-plane" size={18} color="#FFFFFF" />
             </TouchableOpacity>
@@ -396,7 +396,7 @@ export default function MessagesScreen() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => setActiveConversation(CONVERSATIONS[0])}
-          className="flex-row items-center bg-[#E6F7FF] border border-[#B8E2F8] px-3 py-1.5 rounded-full"
+          className="flex-row items-center bg-primary-50 border border-[#B8E2F8] px-3 py-1.5 rounded-full"
         >
           <Ionicons name="chatbubbles-outline" size={14} color="#0099DF" />
           <Text
@@ -421,7 +421,7 @@ export default function MessagesScreen() {
               style={styles.cardShadow}
               className="bg-white rounded-2xl p-4 mb-3 border border-[#DCEFFB] flex-row items-center"
             >
-              <View className="w-14 h-14 rounded-full overflow-hidden bg-[#E6F7FF] border border-[#B8E2F8]">
+              <View className="w-14 h-14 rounded-full overflow-hidden bg-primary-50 border border-[#B8E2F8]">
                 <Image
                   source={item.avatar}
                   className="w-full h-full"
@@ -453,7 +453,7 @@ export default function MessagesScreen() {
                   {item.timeAgo}
                 </Text>
                 {item.unreadCount ? (
-                  <View className="w-5 h-5 rounded-full bg-[#00A8E8] items-center justify-center mt-2">
+                  <View className="w-5 h-5 rounded-full bg-primary items-center justify-center mt-2">
                     <Text
                       className="text-[10px] text-white"
                       style={{ fontFamily: "Poppins-Bold" }}

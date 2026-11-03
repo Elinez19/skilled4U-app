@@ -6,8 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ArtisanHomeView } from "../../components/home/ArtisanHomeView";
 import { CustomerHomeView } from "../../components/home/CustomerHomeView";
-import { LocationPermissionModal } from "../../components/home/LocationPermissionModal";
-import { ServiceSelectionModal } from "../../components/home/ServiceSelectionModal";
+import {
+  LocationPermissionModal,
+  ServiceSelectionModal,
+} from "../../components/modals";
 import { images } from "../../constants/images";
 import { Category } from "../../data/categories";
 
@@ -150,18 +152,16 @@ export default function TabsIndex() {
       </ScrollView>
 
       <ServiceSelectionModal
-        isVisible={isModalVisible}
+        visible={isModalVisible}
         category={selectedCategory}
         onClose={() => setIsModalVisible(false)}
-        onGoPress={() => {
-          if (selectedCategory) {
-            router.push(`/service-providers?categoryId=${selectedCategory.id}`);
-          }
+        onProceed={(selectedSubServices) => {
+          setIsModalVisible(false);
         }}
       />
 
       <LocationPermissionModal
-        isVisible={isLocationModalVisible}
+        visible={isLocationModalVisible}
         onRequestPermission={() => {
           setIsLocationModalVisible(false);
           router.push("/address-book/add");
