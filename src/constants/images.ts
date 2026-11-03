@@ -20,6 +20,16 @@ import cookingAppliances from "@/assets/images/cooking_appliances.png";
 import internetRouter from "@/assets/images/internet_router.png";
 import deliveryTrucks from "@/assets/images/delivery_trucks.png";
 import paintBucket from "@/assets/images/paint_bucket.png";
+import featuredSinkPipes from "@/assets/images/featured-sink-pipes.png";
+import jobSinkRepair from "@/assets/images/job-sink-repair.png";
+import artisanEmeka from "@/assets/images/artisan-emeka.png";
+import artisanAisha from "@/assets/images/artisan-aisha.png";
+import artisanTunde from "@/assets/images/artisan-tunde.png";
+import plumberWork1 from "@/assets/images/professional-plumber-1.jpg";
+import plumberWork2 from "@/assets/images/professional-plumber-2.jpg";
+import electricianWork1 from "@/assets/images/professional-electrician-1.jpg";
+import carpenterWork1 from "@/assets/images/professional-carpenter-1.jpg";
+import acRepairWork from "@/assets/images/professional-ac-repairer.jpg";
 
 export const images = {
   onboardingPainter,
@@ -43,4 +53,14 @@ export const images = {
   internetRouter,
   deliveryTrucks,
   paintBucket,
+  featuredSinkPipes,
+  jobSinkRepair,
+  artisanEmeka,
+  artisanAisha,
+  artisanTunde,
+  plumberWork1,
+  plumberWork2,
+  electricianWork1,
+  carpenterWork1,
+  acRepairWork,
 };
