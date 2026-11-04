@@ -1,5 +1,6 @@
 // Common
 export * from "./common/BaseBottomSheet";
+export * from "./common/AddressSelectionModal";
 
 // Customer Modals
 export * from "./customer/LocationPermissionModal";

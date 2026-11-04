@@ -30,6 +30,7 @@ import plumberWork2 from "@/assets/images/professional-plumber-2.jpg";
 import electricianWork1 from "@/assets/images/professional-electrician-1.jpg";
 import carpenterWork1 from "@/assets/images/professional-carpenter-1.jpg";
 import acRepairWork from "@/assets/images/professional-ac-repairer.jpg";
+import addressSuccessCelebration from "@/assets/images/address-success-celebration.png";
 
 export const images = {
   onboardingPainter,
@@ -63,4 +64,5 @@ export const images = {
   electricianWork1,
   carpenterWork1,
   acRepairWork,
+  addressSuccessCelebration,
 };

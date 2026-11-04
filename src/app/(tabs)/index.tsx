@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArtisanHomeView } from "../../components/home/ArtisanHomeView";
 import { CustomerHomeView } from "../../components/home/CustomerHomeView";
 import {
+  AddressSelectionModal,
   LocationPermissionModal,
   ServiceSelectionModal,
 } from "../../components/modals";
@@ -30,6 +31,7 @@ export default function TabsIndex() {
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,14 +139,17 @@ export default function TabsIndex() {
         {role === "artisan" ? (
           <ArtisanHomeView
             artisanName={userName}
+            locationTitle={savedAddress}
+            onEditLocation={() => setIsAddressModalVisible(true)}
             onSwitchRole={handleSwitchRole}
           />
         ) : (
           <CustomerHomeView
+            customerName={userName}
             locationTitle={savedAddress}
             coords={coords}
             onCoordsChange={handleCoordsChange}
-            onEditLocation={() => router.push("/address-book/add")}
+            onEditLocation={() => setIsAddressModalVisible(true)}
             onCategoryPress={handleCategoryPress}
             onSwitchRole={handleSwitchRole}
           />
@@ -164,9 +169,20 @@ export default function TabsIndex() {
         visible={isLocationModalVisible}
         onRequestPermission={() => {
           setIsLocationModalVisible(false);
-          router.push("/address-book/add");
+          setIsAddressModalVisible(true);
         }}
         onSkip={() => setIsLocationModalVisible(false)}
+      />
+
+      <AddressSelectionModal
+        visible={isAddressModalVisible}
+        role={role}
+        onClose={() => setIsAddressModalVisible(false)}
+        onAddressConfirmed={(addr) => {
+          setSavedAddress(addr.address);
+          setCoords({ lat: addr.latitude, lon: addr.longitude });
+          setIsAddressModalVisible(false);
+        }}
       />
     </SafeAreaView>
   );

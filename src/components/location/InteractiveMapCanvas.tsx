@@ -175,7 +175,12 @@ export function InteractiveMapCanvas({
               return (
                 <ExpoImage
                   key={`${zoom}_${tx}_${ty}_${mapLayer}`}
-                  source={{ uri }}
+                  source={{
+                    uri,
+                    headers: {
+                      "User-Agent": "Skilled4U-App/1.0",
+                    },
+                  }}
                   cachePolicy="memory-disk"
                   transition={120}
                   contentFit="cover"

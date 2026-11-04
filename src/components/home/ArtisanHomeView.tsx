@@ -21,6 +21,8 @@ import {
 
 interface ArtisanHomeViewProps {
   artisanName: string;
+  locationTitle?: string;
+  onEditLocation?: () => void;
   onSwitchRole: (nextRole: "customer" | "artisan") => void;
 }
 
@@ -55,6 +57,8 @@ const QUICK_ACTIONS = [
 
 export function ArtisanHomeView({
   artisanName,
+  locationTitle,
+  onEditLocation,
   onSwitchRole,
 }: ArtisanHomeViewProps) {
   const [showAvailableJobsModal, setShowAvailableJobsModal] = useState(false);
@@ -187,6 +191,58 @@ export function ArtisanHomeView({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ============================================================
+          WORK LOCATION & SERVICE COVERAGE SELECTOR
+         ============================================================ */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={
+          onEditLocation ||
+          (() =>
+            router.push({
+              pathname: "/address-book",
+              params: { role: "artisan", title: "Work Location" },
+            }))
+        }
+        className="bg-white rounded-2xl px-4 py-3 border border-[#DCEFFB] flex-row items-center justify-between mb-5 shadow-sm"
+      >
+        <View className="flex-row items-center flex-1 mr-3">
+          <View className="w-9 h-9 rounded-full bg-primary-50 items-center justify-center mr-3 border border-[#D6ECFA]">
+            <Ionicons name="location" size={19} color="#0099DF" />
+          </View>
+          <View className="flex-1">
+            <Text
+              className="text-[11px] text-[#5B7C99]"
+              style={{ fontFamily: "Poppins-Medium" }}
+            >
+              Work Base & Coverage
+            </Text>
+            <Text
+              className="text-[14px] text-[#003B73]"
+              style={{ fontFamily: "Poppins-Bold" }}
+              numberOfLines={1}
+            >
+              {locationTitle || "Wuye, Abuja (5km radius)"}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center bg-primary-50 border border-[#B8E2F8] px-3 py-1 rounded-full">
+          <Text
+            className="text-[11.5px] text-[#003B73]"
+            style={{ fontFamily: "Poppins-SemiBold" }}
+          >
+            Change
+          </Text>
+          <Ionicons
+            name="chevron-forward"
+            size={13}
+            color="#003B73"
+            style={{ marginLeft: 2 }}
+          />
+        </View>
+      </TouchableOpacity>
 
       {/* ============================================================
           2. TODAY'S OPPORTUNITIES HERO CARD

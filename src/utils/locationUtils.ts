@@ -100,23 +100,22 @@ export function getFreeTileUrl(x: number, y: number, z: number, layer: MapLayerT
     return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${clampedY}/${wrappedX}`;
   }
   if (layer === "detailed") {
-    return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${clampedY}/${wrappedX}`;
+    return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${clampedY}/${wrappedX}`;
   }
-  const subdomains = ["a", "b", "c"];
-  const sub = subdomains[Math.abs(wrappedX + clampedY) % subdomains.length];
-  return `https://${sub}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${wrappedX}/${clampedY}.png`;
+  // High-performance clean street map (100% free, no API key required, zero watermarks)
+  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${clampedY}/${wrappedX}`;
 }
 
 export function getNextMapLayer(current: MapLayerType): MapLayerType {
-  if (current === "streets") return "detailed";
-  if (current === "detailed") return "satellite";
+  if (current === "streets") return "satellite";
+  if (current === "satellite") return "detailed";
   return "streets";
 }
 
 export function getMapLayerLabel(layer: MapLayerType): string {
   if (layer === "satellite") return "Satellite";
-  if (layer === "detailed") return "Esri Map";
-  return "OSM Streets";
+  if (layer === "detailed") return "Topo Map";
+  return "Streets";
 }
 
 export function getServiceRadiusPixelSize(serviceRadius?: string): number {

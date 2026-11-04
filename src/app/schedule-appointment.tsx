@@ -17,15 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { images } from "../constants/images";
 import { ARTISANS } from "../data/artisans";
-
-const WEEK_DAYS = [
-  { dayLabel: "Mon", dateNum: "12", fullDate: "Mon, 12 May 2025" },
-  { dayLabel: "Tue", dateNum: "13", fullDate: "Tue, 13 May 2025" },
-  { dayLabel: "Wed", dateNum: "14", fullDate: "Wed, 14 May 2025" },
-  { dayLabel: "Thu", dateNum: "15", fullDate: "Thu, 15 May 2025" },
-  { dayLabel: "Fri", dateNum: "17", fullDate: "Fri, 17 May 2025" },
-  { dayLabel: "Sat", dateNum: "18", fullDate: "Sat, 18 May 2025" },
-];
+import { BookingCalendar } from "../components/ui/BookingCalendar";
 
 const TIME_SLOTS = [
   "9:00 AM",
@@ -52,7 +44,8 @@ export default function BookServiceScreen() {
         a.name.toLowerCase() === (params.artisanName || "").toLowerCase()
     ) || ARTISANS[0];
 
-  const [selectedDay, setSelectedDay] = useState("14");
+  const [selectedDateString, setSelectedDateString] = useState("2025-05-14");
+  const [formattedDate, setFormattedDate] = useState("Wed, 14 May 2025");
   const [selectedTime, setSelectedTime] = useState("11:00 AM");
   const [serviceAddress, setServiceAddress] = useState(
     "12 Freedom Street, Abuja"
@@ -81,8 +74,6 @@ export default function BookServiceScreen() {
 
   const handleConfirmBooking = async () => {
     setIsSubmitting(true);
-    const chosenDayObj =
-      WEEK_DAYS.find((d) => d.dateNum === selectedDay) || WEEK_DAYS[2];
 
     try {
       const existingRaw = await AsyncStorage.getItem("skilled4u_bookings");
@@ -92,7 +83,7 @@ export default function BookServiceScreen() {
         service: matchedArtisan.trade === "Plumber" ? "Plumbing" : matchedArtisan.trade,
         artisanName: matchedArtisan.name,
         artisanTrade: matchedArtisan.trade,
-        dateTime: `${chosenDayObj.fullDate} • ${selectedTime}`,
+        dateTime: `${formattedDate} • ${selectedTime}`,
         price: matchedArtisan.hourlyRate || "₦15,000",
         address: serviceAddress,
         notes: additionalDetails,
@@ -111,7 +102,7 @@ export default function BookServiceScreen() {
     Toast.show({
       type: "success",
       text1: "Booking Confirmed!",
-      text2: `${matchedArtisan.name} is scheduled for ${chosenDayObj.fullDate} at ${selectedTime}.`,
+      text2: `${matchedArtisan.name} is scheduled for ${formattedDate} at ${selectedTime}.`,
     });
 
     router.replace("/(tabs)/jobs?view=tracking");
@@ -186,54 +177,15 @@ export default function BookServiceScreen() {
             Select Date & Time
           </Text>
 
-          {/* Calendar Strip Card */}
-          <View
-            style={styles.cardShadow}
-            className="bg-white rounded-2xl p-4 mb-3.5 border border-[#DCEFFB]"
-          >
-            <View className="flex-row items-center justify-between mb-3">
-              <Text
-                className="text-[14.5px] text-[#003B73]"
-                style={{ fontFamily: "Poppins-Bold" }}
-              >
-                May 2025
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color="#5B7C99" />
-            </View>
-
-            <View className="flex-row justify-between">
-              {WEEK_DAYS.map((item) => {
-                const isSelected = selectedDay === item.dateNum;
-                return (
-                  <TouchableOpacity
-                    key={item.dateNum}
-                    activeOpacity={0.8}
-                    onPress={() => setSelectedDay(item.dateNum)}
-                    className={`w-[15%] py-2.5 rounded-2xl items-center justify-center ${
-                      isSelected ? "bg-primary" : "bg-transparent"
-                    }`}
-                  >
-                    <Text
-                      className={`text-[11px] mb-1 ${
-                        isSelected ? "text-white/90" : "text-[#5B7C99]"
-                      }`}
-                      style={{ fontFamily: "Poppins-Medium" }}
-                    >
-                      {item.dayLabel}
-                    </Text>
-                    <Text
-                      className={`text-[15px] ${
-                        isSelected ? "text-white" : "text-[#003B73]"
-                      }`}
-                      style={{ fontFamily: "Poppins-Bold" }}
-                    >
-                      {item.dateNum}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+          {/* Interactive React Native Calendars Component */}
+          <BookingCalendar
+            selectedDate={selectedDateString}
+            onSelectDate={(iso, formatted) => {
+              setSelectedDateString(iso);
+              setFormattedDate(formatted);
+            }}
+            initialMode="month"
+          />
 
           {/* Time Slots Grid */}
           <View className="flex-row flex-wrap justify-between mb-4">

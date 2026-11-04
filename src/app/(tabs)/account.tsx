@@ -159,7 +159,10 @@ export default function AccountScreen() {
         break;
       case "addresses":
       case "service-area":
-        router.push("/address-book");
+        router.push({
+          pathname: "/address-book",
+          params: { role: role === "artisan" ? "artisan" : "customer" },
+        });
         break;
       case "edit-profile":
       case "settings":
